@@ -1,0 +1,90 @@
+:root {
+    color: #334155;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    margin: 0;
+}
+
+.react-demo-page {
+    align-items: center;
+    background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.react-demo-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 18px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+    max-width: 460px;
+    padding: 40px;
+    text-align: center;
+    width: 100%;
+}
+
+.react-demo-eyebrow {
+    color: #15803d;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+}
+
+.react-demo-card h1 {
+    color: #0f172a;
+    font-size: clamp(1.7rem, 5vw, 2.3rem);
+    line-height: 1.2;
+    margin: 0;
+}
+
+.react-demo-label {
+    color: #475569;
+    margin: 28px 0 8px;
+}
+
+.react-demo-counter {
+    color: #15803d;
+    display: block;
+    font-size: 4rem;
+    font-weight: 800;
+}
+
+.react-demo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 28px;
+}
+
+.react-demo-actions button {
+    background: #15803d;
+    border: 0;
+    border-radius: 9px;
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    min-height: 46px;
+    padding: 12px 18px;
+}
+
+.react-demo-actions .react-demo-reset {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.react-demo-actions button:hover {
+    filter: brightness(0.94);
+}
+
+.react-demo-actions button:focus-visible {
+    outline: 3px solid #60a5fa;
+    outline-offset: 3px;
+}
