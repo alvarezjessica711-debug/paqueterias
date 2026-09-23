@@ -41,10 +41,10 @@
                                 <tr>
                                     <td>{{ $paquete->created_at->format('d/m/Y H:i') }}</td>
                                     <td>{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }} - {{ $paquete->apartamento?->torre ?? 'Sin torre' }}</td>
-                                    <td>{{ $paquete->residente?->nombre ?? 'Sin residente' }}</td>
-                                    <td>{{ $paquete->empresa }}</td>
+                                    <td class="texto-largo">{{ $paquete->residente?->nombre ?? 'Sin residente' }}</td>
+                                    <td class="texto-largo">{{ $paquete->empresa }}</td>
                                     <td>{{ $paquete->guia ?? 'Sin guía' }}</td>
-                                    <td>
+                                    <td class="texto-largo">
                                         @if ($paquete->autorizacionActiva)
                                             <strong>Tercero autorizado</strong><br>
                                             {{ $paquete->autorizacionActiva->nombre_autorizado }}<br>

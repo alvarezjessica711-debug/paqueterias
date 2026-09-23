@@ -37,6 +37,11 @@
 
         h2 { color: #1a5276; text-align: center; margin-bottom: 20px; }
 
+        .tabla-paquetes-scroll {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
         /* Estilo de la tabla */
         table {
             width: 100%;
@@ -86,6 +91,7 @@
     <main>
         <h2>Detalle de Correspondencia</h2>
         
+        <div class="tabla-paquetes-scroll" role="region" aria-label="Paquetes registrados" tabindex="0">
         <table>
             <thead>
                 <tr>
@@ -114,6 +120,8 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
+        <a href="{{ route('dashboard') }}" class="btn-volver">Volver al panel</a>
 
         
     </main>

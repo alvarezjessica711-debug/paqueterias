@@ -63,6 +63,7 @@ body {
 }
 
 .sidebar-navegacion {
+    flex-shrink: 0;
     width: 260px;
     background-color: var(--azul-oscuro);
     padding-top: 2rem;
@@ -99,6 +100,7 @@ body {
 
 /* Zona de Trabajo del Formulario */
 .zona-trabajo {
+    min-width: 0;
     flex: 1;
     padding: 2.5rem;
 }
@@ -774,6 +776,10 @@ textarea {
 
 .tarjeta-modal-firma {
     width: min(520px, calc(100% - 32px));
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
     background-color: #ffffff;
     border-radius: 18px;
     overflow: hidden;
@@ -781,6 +787,7 @@ textarea {
 }
 
 .cabecera-verde-modal {
+    flex-shrink: 0;
     background-color: #15803d; /* Verde institucional */
     color: #ffffff;
     padding: 16px 20px;
@@ -802,6 +809,10 @@ textarea {
 }
 
 .cuerpo-modal-firma {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    overscroll-behavior: contain;
     padding: 24px 25px;
 }
 
@@ -1161,6 +1172,8 @@ textarea {
 
     .filtro-grupo {
         width: 100%;
+        flex-basis: auto;
+        flex-grow: 0;
     }
 
     .filtros-acciones {
@@ -1219,6 +1232,8 @@ textarea {
 
     .filtro-grupo {
         width: 100%;
+        flex-basis: auto;
+        flex-grow: 0;
     }
 
     .filtros-acciones {
@@ -1254,5 +1269,88 @@ textarea {
         padding: 0.75rem 0.5rem;
         font-size: 0.85rem;
         height: 40px;
+    }
+}
+
+/* Reportes: el desplazamiento horizontal queda limitado a la tabla. */
+.zona-reportes {
+    min-width: 0;
+}
+
+.zona-reportes .filtro-grupo {
+    min-width: 0;
+}
+
+.zona-reportes .filtro-grupo input,
+.zona-reportes .filtro-grupo select {
+    width: 100%;
+    min-width: 0;
+}
+
+.resumen-reportes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.card-resumen {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    background: #f0fdf4;
+    overflow-wrap: anywhere;
+}
+
+.card-resumen span {
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.card-resumen strong {
+    color: #166534;
+    font-size: 1.5rem;
+}
+
+.tabla-reporte-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Los textos descriptivos pueden partirse sin expandir las tablas. */
+.tabla-datos td.texto-largo {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-width: 10rem;
+    max-width: 22rem;
+}
+
+.tabla-apartamentos {
+    container-type: inline-size;
+}
+
+.tabla-apartamentos .formulario-edicion-apartamento {
+    width: min(700px, calc(100cqw - 48px));
+    position: sticky;
+    left: 12px;
+}
+
+.formulario-edicion-apartamento input {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .tabla-datos td a:not(:has(img)),
+    .tabla-datos td button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 10px 12px;
+        white-space: nowrap;
     }
 }

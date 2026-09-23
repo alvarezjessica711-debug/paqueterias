@@ -84,9 +84,19 @@
         const firma = document.getElementById('firma');
 
         function ajustarCanvas() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            const ancho = Math.max(1, Math.round(canvas.clientWidth));
+            const alto = Math.max(1, Math.round(canvas.clientHeight));
+
+            if (canvas.width === ancho && canvas.height === alto) return;
+
+            // Cambiar las dimensiones borra el canvas; conservar el trazo antes de ajustarlo.
+            const copia = document.createElement('canvas');
+            copia.width = canvas.width;
+            copia.height = canvas.height;
+            copia.getContext('2d').drawImage(canvas, 0, 0);
+            canvas.width = ancho;
+            canvas.height = alto;
+            ctx.drawImage(copia, 0, 0, ancho, alto);
         }
 
         window.addEventListener('resize', ajustarCanvas);

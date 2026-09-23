@@ -12,10 +12,15 @@
         @include('partials.navegacion')
 
         <main class="zona-trabajo">
-            <div class="dashboard-header-top"><div class="encabezado-seccion"><h2>¡Hola, Vigilante!</h2><p>Aquí tienes un resumen de las entregas.</p></div></div>
+            <div class="dashboard-header-top"><div class="encabezado-seccion"><h2>¡Hola, {{ auth()->user()->rol === 'admin' ? 'Administrador' : 'Vigilante' }}!</h2><p>Aquí tienes un resumen de las entregas.</p></div></div>
             <div class="dashboard-grid-cards">
+                @if (auth()->user()->rol === 'admin')
+                    <a href="{{ route('residentes') }}" class="card-dash card-registrar"><i class="fas fa-users"></i><h3>Gestionar<br>Residentes</h3></a>
+                    <a href="{{ route('reportes') }}" class="card-dash card-consultar"><i class="fas fa-chart-bar"></i><h3>Consultar<br>Reportes</h3></a>
+                @elseif (auth()->user()->rol === 'vigilante')
                 <a href="{{ route('registro-paquetes') }}" class="card-dash card-registrar"><i class="fas fa-box-open"></i><h3>Registrar<br>Nuevo Paquete</h3></a>
                 <a href="{{ route('consultar') }}" class="card-dash card-consultar"><i class="fas fa-search"></i><h3>Consultar<br>Entregas</h3></a>
+                @endif
                 <a href="{{ route('historial') }}" class="card-dash card-historial"><i class="fas fa-history"></i><h3>Historial de<br>Entregas</h3></a>
             </div>
             <div class="contenedor-tabla">
@@ -28,8 +33,8 @@
                                 <td>{{ $paquete->created_at->format('d/m/Y') }}</td>
                                 <td>{{ $paquete->apartamento?->torre ?? 'Sin torre' }}</td>
                                 <td>{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }}</td>
-                                <td>{{ $paquete->residente?->nombre ?? 'Sin residente asignado' }}</td>
-                                <td>{{ $paquete->empresa }}</td>
+                                <td class="texto-largo">{{ $paquete->residente?->nombre ?? 'Sin residente asignado' }}</td>
+                                <td class="texto-largo">{{ $paquete->empresa }}</td>
                                 <td><span class="badge {{ strtolower($paquete->estado) }}">{{ $paquete->estado }}</span></td>
                             </tr>
                         @empty

@@ -48,7 +48,7 @@
                     <tbody>
                         @forelse ($guardas as $guarda)
                             <tr>
-                                <td>{{ $guarda->name }}</td>
+                                <td class="texto-largo">{{ $guarda->name }}</td>
                                 <td>{{ $guarda->email }}</td>
                                 <td><span class="badge {{ $guarda->activo ? 'badge-activo' : 'badge-inactivo' }}">{{ $guarda->activo ? 'Activo' : 'Inactivo' }}</span></td>
                                 <td class="acciones-columna">

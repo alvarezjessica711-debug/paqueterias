@@ -103,7 +103,7 @@
                     <tbody>
                         @forelse ($residentes as $residente)
                             <tr>
-                                <td>{{ $residente->nombre }}</td>
+                                <td class="texto-largo">{{ $residente->nombre }}</td>
                                 <td>{{ $residente->telefono ?: 'Sin teléfono registrado' }}</td>
                                 <td>
                                     @forelse ($residente->apartamentos as $apartamento)

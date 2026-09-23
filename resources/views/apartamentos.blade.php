@@ -24,7 +24,7 @@
                 </form>
             </section>
 
-            <div class="contenedor-tabla">
+            <div class="contenedor-tabla tabla-apartamentos">
                 <table class="tabla-datos">
                     <thead><tr><th>Torre</th><th>Apartamento</th><th>Estado</th><th>Residentes asociados</th><th>Acciones</th></tr></thead>
                     <tbody>
@@ -32,7 +32,7 @@
                             <tr>
                                 <td>{{ $apartamento->torre }}</td><td>{{ $apartamento->numero }}</td>
                                 <td><span class="badge {{ $apartamento->activo ? 'badge-activo' : 'badge-inactivo' }}">{{ $apartamento->activo ? 'Activo' : 'Inactivo' }}</span></td>
-                                <td class="residentes-asociados">{{ $apartamento->residentes->pluck('nombre')->join(', ') ?: 'Sin residentes asociados' }}</td>
+                                <td class="texto-largo residentes-asociados">{{ $apartamento->residentes->pluck('nombre')->join(', ') ?: 'Sin residentes asociados' }}</td>
                                 <td class="acciones-columna">
                                     <button type="button" class="btn-accion-entregar" data-editar-apartamento="{{ $apartamento->id }}">Editar</button>
                                     <form class="form-accion-tabla" method="post" action="{{ route('apartamentos.toggle', $apartamento) }}">@csrf @method('PATCH')<button type="submit" class="btn-limpiar-filtros">{{ $apartamento->activo ? 'Desactivar' : 'Reactivar' }}</button></form>
@@ -59,6 +59,7 @@
     <script>
         document.querySelectorAll('[data-editar-apartamento]').forEach((boton) => boton.addEventListener('click', () => {
             document.getElementById('editar-apartamento-' + boton.dataset.editarApartamento).hidden = false;
+            boton.closest('.contenedor-tabla').scrollLeft = 0;
         }));
         document.querySelectorAll('[data-cancelar-edicion]').forEach((boton) => boton.addEventListener('click', () => {
             document.getElementById('editar-apartamento-' + boton.dataset.cancelarEdicion).hidden = true;

@@ -29,8 +29,8 @@
                             <tr>
                                 <td>{{ $paquete->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $paquete->apartamento?->torre ?? 'Sin torre' }} - {{ $paquete->apartamento?->numero ?? 'Sin apartamento' }}</td>
-                                <td>{{ $paquete->empresa }}</td>
-                                <td>{{ $paquete->detalles ?? 'Sin detalles' }}</td>
+                                <td class="texto-largo">{{ $paquete->empresa }}</td>
+                                <td class="texto-largo">{{ $paquete->detalles ?? 'Sin detalles' }}</td>
                                 <td><span class="badge {{ strtolower($paquete->estado) }}">{{ $paquete->estado }}</span></td>
                             </tr>
                         @empty

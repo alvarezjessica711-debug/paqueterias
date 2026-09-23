@@ -1,62 +1,117 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Valle de San Remo
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web para gestionar los paquetes que llegan al conjunto residencial Valle de San Remo.
 
-## About Laravel
+## Descripción del proyecto
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+El proyecto permite registrar la correspondencia recibida en portería, consultar su estado y conservar la trazabilidad de las entregas. Se presenta como parte de la evidencia académica **GA7-220501096-AA4-EV03: Componente front-end del proyecto formativo y proyectos de clase**.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+La aplicación principal utiliza **Laravel Blade**. Incluye una demostración independiente de conceptos básicos de React; no todo el sistema está desarrollado en React.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Funciones principales
 
-## Learning Laravel
+- Inicio y cierre de sesión con control de acceso por rol y estado de la cuenta.
+- Registro de paquetes, guía, empresa de mensajería y fotografía opcional.
+- Consulta e historial con filtros.
+- Entrega de paquetes con firma y registro de quien recibe y del vigilante responsable.
+- Autorizaciones de retiro por terceros.
+- Gestión de residentes, vigilantes y apartamentos.
+- Reportes y exportación CSV.
+- Notificación de nuevos paquetes al usuario asociado al residente.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+En la configuración de demostración, el correo usa el transporte `log`: los mensajes quedan registrados en `storage/logs/laravel.log`, sin enviarse a una bandeja real. No hay integración de envío por WhatsApp.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Roles actuales
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **Administrador:** gestiona residentes, vigilantes y apartamentos; consulta historial, reportes y configuración.
+- **Vigilante:** registra paquetes, consulta pendientes y confirma entregas.
+- **Residente:** consulta sus paquetes e historial y autoriza a terceros para retirarlos.
 
-## Agentic Development
+## Tecnologías utilizadas
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Laravel, PHP, SQLite, HTML, CSS y JavaScript. React se utiliza para la demostración front-end, con Vite para compilar los recursos.
 
-```bash
-composer require laravel/boost --dev
+## Base de datos
 
-php artisan boost:install
+Actualmente se utiliza **SQLite**, con el archivo local `database/database.sqlite`. Las migraciones describen su estructura. La base de trabajo y sus datos no se incluyen en el repositorio.
+
+## Instalación básica
+
+Requisitos: PHP compatible con `composer.json`, Composer y Node.js con npm compatible con las dependencias del proyecto. PHP debe disponer de SQLite y GD para la base de datos y las firmas.
+
+Para una **instalación nueva**, clona el repositorio e instala las dependencias:
+
+```sh
+git clone https://github.com/alvarezjessica711-debug/paqueterias.git
+cd paqueterias
+composer install
+npm ci
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Copia `.env.example` como `.env` únicamente si todavía no existe. En una instalación nueva, genera la clave:
 
-## Contributing
+```sh
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Crea un archivo vacío `database/database.sqlite` solo si no existe y ejecuta:
 
-## Code of Conduct
+```sh
+php artisan migrate
+php artisan storage:link
+npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Si ya tienes una instalación, conserva su `.env`, su clave y su base de datos. No reemplaces esos archivos para seguir estas instrucciones.
 
-## Security Vulnerabilities
+Las cuentas y los datos de demostración se preparan por separado. El seeder general no reproduce por sí solo todos los datos de la demostración; el seeder específico de María requiere que su cuenta, apartamento y vigilante ya existan. No es necesario ejecutar seeders para compilar los recursos.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Cómo ejecutar Laravel
 
-## License
+```sh
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Abre la dirección indicada en la terminal y entra en `/login`. Utiliza una cuenta proporcionada por el responsable del proyecto.
 
-## Author
+## Cómo ejecutar Vite
+
+En otra terminal, durante el desarrollo:
+
+```sh
+npm run dev
+```
+
+Para generar los archivos compilados:
+
+```sh
+npm run build
+```
+
+## Cómo ejecutar pruebas
+
+```sh
+php artisan test
+```
+
+La configuración de pruebas usa SQLite en memoria y no necesita borrar la base de trabajo.
+
+## Demostración React
+
+Con Laravel en ejecución y los recursos compilados o Vite activo, visita `/demo-react`.
+
+El componente muestra un contador mediante `useState`. Los botones usan `onClick` para aumentar el contador o reiniciarlo y `createRoot` monta el componente. Es una actividad académica: no crea paquetes ni modifica la base de datos.
+
+Archivos principales:
+
+- `resources/js/react-demo.jsx`
+- `resources/js/react-demo.css`
+- `resources/views/demo-react.blade.php`
+
+## Repositorio
+
+[GitHub — paqueterias](https://github.com/alvarezjessica711-debug/paqueterias)
+
+## Autor / integrantes
 
 - Yesica Alvarez

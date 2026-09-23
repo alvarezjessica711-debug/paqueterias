@@ -127,6 +127,7 @@ test('each role sees only its permitted navigation options', function () {
     $this->actingAs($vigilante)
         ->get(route('dashboard'))
         ->assertSeeText('Registrar Paquete')
+        ->assertSeeText('¡Hola, Vigilante!')
         ->assertSeeText('Consultar Entregas')
         ->assertDontSeeText('Residentes')
         ->assertDontSeeText('Configuración');
@@ -136,6 +137,10 @@ test('each role sees only its permitted navigation options', function () {
     $this->actingAs($administrator)
         ->get(route('dashboard'))
         ->assertSeeText('Residentes')
+        ->assertSeeText('¡Hola, Administrador!')
+        ->assertDontSeeText('¡Hola, Vigilante!')
+        ->assertDontSee('href="'.route('registro-paquetes').'"', false)
+        ->assertDontSee(route('consultar'), false)
         ->assertSeeText('Configuración')
         ->assertDontSeeText('Registrar Paquete')
         ->assertDontSeeText('Consultar Entregas');

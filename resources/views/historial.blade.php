@@ -65,8 +65,8 @@
                             <tr>
                                 <td>{{ $paquete->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }} - {{ $paquete->apartamento?->torre ?? 'Sin torre' }}</td>
-                                <td>{{ $paquete->residente?->nombre ?? 'Sin residente asignado' }}</td>
-                                <td>{{ $paquete->empresa }}</td>
+                                <td class="texto-largo">{{ $paquete->residente?->nombre ?? 'Sin residente asignado' }}</td>
+                                <td class="texto-largo">{{ $paquete->empresa }}</td>
                                 <td>{{ $paquete->guia ?? 'Sin guía' }}</td>
                                 <td>
                                     @if ($paquete->foto)
@@ -76,7 +76,7 @@
                                     @endif
                                 </td>
                                 <td><span class="badge {{ strtolower($paquete->estado) }}">{{ $paquete->estado }}</span></td>
-                                <td>
+                                <td class="texto-largo">
                                     @php($autorizacionActiva = $paquete->autorizacionesRetiro->firstWhere('estado', 'Activa'))
                                     @php($autorizacionReciente = $autorizacionActiva ?? $paquete->autorizacionesRetiro->sortByDesc('id')->first())
                                     @if ($paquete->estado === 'Entregado')
