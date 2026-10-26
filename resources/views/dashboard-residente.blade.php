@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi panel - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -12,7 +12,8 @@
         @include('partials.navegacion')
         <main class="zona-trabajo">
             <div class="encabezado-seccion">
-                <h2>Hola, {{ $residenteNombre }}</h2>
+                <h2>Hola, {{ auth()->user()->name }}</h2>
+                <p class="rol-usuario">Residente</p>
                 <p>Consulta el estado de tus paquetes recibidos durante este mes.</p>
             </div>
             <div class="dashboard-grid-cards">
@@ -23,18 +24,19 @@
             <div class="contenedor-tabla">
                 <div class="tabla-header"><h3>Paquetes recientes</h3><a href="{{ route('mis-paquetes') }}" class="enlace-ver-todos">Ver mis paquetes</a></div>
                 <table class="tabla-datos">
-                    <thead><tr><th>Fecha</th><th>Apartamento</th><th>Mensajería</th><th>Detalles</th><th>Estado</th></tr></thead>
+                    <thead><tr><th>Fecha</th><th>Casa</th><th>Destinatario</th><th>Mensajería</th><th>Detalles</th><th>Estado</th></tr></thead>
                     <tbody>
                         @forelse ($paquetes as $paquete)
                             <tr>
                                 <td>{{ $paquete->created_at->format('d/m/Y H:i') }}</td>
-                                <td>{{ $paquete->apartamento?->torre ?? 'Sin torre' }} - {{ $paquete->apartamento?->numero ?? 'Sin apartamento' }}</td>
+                                <td>{{ $paquete->casa?->codigo ?? 'Código de casa pendiente' }}</td>
+                                <td>{{ $paquete->destinatario ?: ($paquete->residente?->nombre ?? 'Sin destinatario registrado') }}</td>
                                 <td class="texto-largo">{{ $paquete->empresa }}</td>
                                 <td class="texto-largo">{{ $paquete->detalles ?? 'Sin detalles' }}</td>
                                 <td><span class="badge {{ strtolower($paquete->estado) }}">{{ $paquete->estado }}</span></td>
                             </tr>
                         @empty
-                            <tr><td colspan="5">No tienes paquetes registrados este mes.</td></tr>
+                            <tr><td colspan="6">No tienes paquetes registrados este mes.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

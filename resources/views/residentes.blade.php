@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Residentes - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -42,7 +42,6 @@
                         @enderror
                     </div>
 
-                    <div class="grupo-input full-width"><label><input type="checkbox" name="crear_cuenta" value="1" {{ old('crear_cuenta') ? 'checked' : '' }}> Crear cuenta de acceso</label><input name="email_acceso" type="email" value="{{ old('email_acceso') }}" placeholder="Correo de acceso"><input name="password" type="password" placeholder="Contraseña inicial"><input name="password_confirmation" type="password" placeholder="Confirmar contraseña"></div>
 
                     <div class="grupo-input">
                         <label for="telefono"><i class="fas fa-phone"></i> Teléfono / WhatsApp</label>
@@ -61,24 +60,24 @@
                     </div>
 
                     <div class="grupo-input full-width">
-                        <label><i class="fas fa-building"></i> Apartamentos asociados</label>
-                        @if ($apartamentos->isNotEmpty())
+                        <label><i class="fas fa-building"></i> Casas asociadas</label>
+                        @if ($casas->isNotEmpty())
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; padding: 12px 14px; border: 1px solid #dfe7f1; border-radius: 12px; background: #f8fbff;">
-                                @foreach ($apartamentos as $apartamento)
+                                @foreach ($casas as $casa)
                                     <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #dfe7f1; border-radius: 10px; background: white; cursor: pointer;">
-                                        <input type="checkbox" name="apartamentos[]" value="{{ $apartamento->id }}" {{ collect(old('apartamentos', []))->contains($apartamento->id) ? 'checked' : '' }}>
-                                        <span>{{ $apartamento->torre }} - Apto. {{ $apartamento->numero }}</span>
+                                        <input type="checkbox" name="casas[]" value="{{ $casa->id }}" {{ collect(old('casas', []))->contains($casa->id) ? 'checked' : '' }}>
+                                        <span>{{ $casa->codigo }}</span>
                                     </label>
                                 @endforeach
                             </div>
-                            <small class="texto-ayuda">Selecciona los apartamentos que pertenecen a este residente.</small>
+                            <small class="texto-ayuda">Selecciona las casas que pertenecen a este residente.</small>
                         @else
-                            <p class="texto-ayuda">Primero registra apartamentos para poder asociarlos a un residente.</p>
+                            <p class="texto-ayuda">Primero registra casas para poder asociarlas a un residente.</p>
                         @endif
-                        @error('apartamentos')
+                        @error('casas')
                             <span>{{ $message }}</span>
                         @enderror
-                        @error('apartamentos.*')
+                        @error('casas.*')
                             <span>{{ $message }}</span>
                         @enderror
                     </div>
@@ -96,7 +95,7 @@
                         <tr>
                             <th>Nombre Completo</th>
                             <th>Teléfono / WhatsApp</th>
-                            <th>Apartamentos asociados</th>
+                            <th>Casas asociadas</th>
                             <th>Cuenta / Estado</th><th>Acciones</th>
                         </tr>
                     </thead>
@@ -106,13 +105,13 @@
                                 <td class="texto-largo">{{ $residente->nombre }}</td>
                                 <td>{{ $residente->telefono ?: 'Sin teléfono registrado' }}</td>
                                 <td>
-                                    @forelse ($residente->apartamentos as $apartamento)
-                                        <span>{{ $apartamento->torre }} - Apto. {{ $apartamento->numero }}@if (! $loop->last), @endif</span>
+                                    @forelse ($residente->casas as $casa)
+                                        <span>{{ $casa->codigo }}@if (! $loop->last), @endif</span>
                                     @empty
-                                        <span>Sin apartamento asociado</span>
+                                        <span>Sin casa asociada</span>
                                     @endforelse
                                 </td>
-                                <td>{{ $residente->user ? ($residente->user->activo ? 'Cuenta activa' : 'Cuenta inactiva') : 'Sin cuenta' }} - {{ $residente->activo ? 'Activo' : 'Inactivo' }}</td><td>@if (! $residente->user)<a href="{{ route('residentes.cuenta.create',$residente) }}">Crear cuenta</a>@endif <a href="{{ route('residentes.edit',$residente) }}">Editar</a><form method="post" action="{{ route('residentes.toggle',$residente) }}">@csrf @method('PATCH')<button>{{ $residente->activo?'Desactivar':'Reactivar' }}</button></form></td>
+                <td>{{ $residente->user ? ($residente->user->activo ? 'Cuenta activa' : 'Cuenta inactiva') : 'Sin cuenta' }} - {{ $residente->activo ? 'Activo' : 'Inactivo' }}</td><td><a href="{{ route('residentes.edit',$residente) }}">Editar</a><form method="post" action="{{ route('residentes.toggle',$residente) }}">@csrf @method('PATCH')<button>{{ $residente->activo?'Desactivar':'Reactivar' }}</button></form></td>
                             </tr>
                         @empty
                             <tr>

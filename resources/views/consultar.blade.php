@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consultar Entregas - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
             <div class="encabezado-seccion"><h2>Consultar Entregas</h2><p>Busca rápidamente si hay algún paquete esperando en la portería.</p></div>
             <div class="contenedor-tabla panel-busqueda">
                 <form class="filtros-historial" method="get" action="{{ route('consultar') }}">
-                    <div class="filtro-grupo"><label for="busqueda">Ingresa apartamento, torre, residente o guía</label><div class="filtro-input"><i class="fas fa-search"></i><input id="busqueda" type="text" name="busqueda" placeholder="Ej. 204, Torre 2, María López o guía" value="{{ $busqueda['busqueda'] ?? '' }}"></div></div>
+                    <div class="filtro-grupo"><label for="busqueda">Código de casa, residente o guía</label><div class="filtro-input"><i class="fas fa-search"></i><input id="busqueda" type="search" name="busqueda" placeholder="Ej. A1, María López o guía" value="{{ $busqueda['busqueda'] ?? '' }}" autocomplete="off"></div></div>
                     <div class="filtros-botones-consultar">
                         <button type="submit" class="btn-confirmar-verde btn-buscar"><i class="fas fa-search"></i> Buscar</button>
                         <a href="{{ route('consultar') }}" class="btn-limpiar-filtros">Limpiar</a>
@@ -35,13 +35,13 @@
                 </div>
                 @if ($paquetes->count() > 0)
                     <table class="tabla-datos">
-                        <thead><tr><th>Fecha</th><th>Apartamento</th><th>Residente</th><th>Mensajería</th><th>Guía / Tracking</th><th>Autorización</th><th>Fotografía</th><th>Estado</th><th>Acción</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Casa</th><th>Destinatario</th><th>Mensajería</th><th>Guía / Tracking</th><th>Autorización</th><th>Fotografía</th><th>Estado</th><th>Acción</th></tr></thead>
                         <tbody>
                             @foreach ($paquetes as $paquete)
                                 <tr>
                                     <td>{{ $paquete->created_at->format('d/m/Y H:i') }}</td>
-                                    <td>{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }} - {{ $paquete->apartamento?->torre ?? 'Sin torre' }}</td>
-                                    <td class="texto-largo">{{ $paquete->residente?->nombre ?? 'Sin residente' }}</td>
+                                    <td>{{ $paquete->casa?->codigo ?? 'Código de casa pendiente' }}</td>
+                                    <td class="texto-largo">{{ $paquete->destinatario ?: ($paquete->residente?->nombre ?? 'Sin destinatario registrado') }}</td>
                                     <td class="texto-largo">{{ $paquete->empresa }}</td>
                                     <td>{{ $paquete->guia ?? 'Sin guía' }}</td>
                                     <td class="texto-largo">
@@ -71,7 +71,7 @@
                     <div style="padding: 40px 26px; text-align: center; color: #94a3b8;">
                         <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
                         <p style="font-size: 1.1rem;">@if (!empty($busqueda['busqueda']))
-                            No se encontraron paquetes con esos criterios.
+                            No se encontraron paquetes.
                         @else
                             No hay paquetes pendientes en este momento.
                         @endif</p>

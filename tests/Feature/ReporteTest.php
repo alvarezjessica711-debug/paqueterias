@@ -95,7 +95,7 @@ test('csv export respects filters and contains utf8 headers with historical rela
     $admin = User::factory()->create(['rol' => 'admin']);
     $guardaInactivo = User::factory()->create(['rol' => 'vigilante', 'name' => 'Guarda Histórico', 'activo' => false]);
     $residenteInactivo = Residente::factory()->create(['nombre' => 'María Histórica', 'activo' => false]);
-    $apartamentoInactivo = Apartamento::factory()->create(['torre' => 'Torre Ñ', 'numero' => '301', 'activo' => false]);
+    $apartamentoInactivo = Apartamento::factory()->create(['codigo' => 'E15', 'activo' => false]);
     $incluido = crearPaqueteReporte(['residente' => $residenteInactivo, 'apartamento' => $apartamentoInactivo, 'estado' => 'Entregado', 'guia' => 'GUIA-INCLUIDA', 'fecha_entrega' => now(), 'entregado_por' => $guardaInactivo->id, 'recibido_por' => 'Tercero Autorizado']);
     Paquete::whereKey($incluido)->update(['created_at' => now()->subHours(2), 'updated_at' => now()->subHours(2)]);
     crearPaqueteReporte(['estado' => 'Pendiente', 'guia' => 'GUIA-EXCLUIDA']);
@@ -103,5 +103,5 @@ test('csv export respects filters and contains utf8 headers with historical rela
     $respuesta = $this->actingAs($admin)->get(route('reportes.exportar', ['estado' => 'Entregado']));
     $respuesta->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
     $csv = $respuesta->streamedContent();
-    expect($csv)->toStartWith("\xEF\xBB\xBF")->toContain('Fecha recepción')->toContain('Guía')->toContain('María Histórica')->toContain('Torre Ñ')->toContain('Guarda Histórico')->toContain('GUIA-INCLUIDA')->not->toContain('GUIA-EXCLUIDA');
+    expect($csv)->toStartWith("\xEF\xBB\xBF")->toContain('Fecha recepción')->toContain('Guía')->toContain('María Histórica')->toContain('E15')->toContain('Guarda Histórico')->toContain('GUIA-INCLUIDA')->not->toContain('GUIA-EXCLUIDA')->not->toContain('Torre');
 });

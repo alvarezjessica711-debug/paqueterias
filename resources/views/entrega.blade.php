@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firma de Entrega - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <title>Validar entrega - Valle de San Remo</title>
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="fondo-modal-oscuro">
     <div class="modal-overlay">
-        <div class="tarjeta-modal-firma">
+        <main class="tarjeta-modal-confirmacion">
             <div class="cabecera-verde-modal">
-                <h3>Confirmar Entrega</h3>
-                <a href="{{ route('historial') }}" class="btn-cerrar-x" aria-label="Cerrar confirmación de entrega"><i class="fas fa-times"></i></a>
+                <h3>Confirmar entrega</h3>
+                <a href="{{ route('historial') }}" class="btn-cerrar-x" aria-label="Volver al historial"><i class="fas fa-times"></i></a>
             </div>
 
-            <form id="form-entrega" class="cuerpo-modal-firma" action="{{ route('entrega.confirmar', $paquete) }}" method="post">
-                @csrf
-                <input type="hidden" id="firma" name="firma">
+            <div class="cuerpo-modal-confirmacion">
+                <p><strong>Estado actual:</strong> <span class="badge pendiente">{{ $paquete->estado }}</span></p>
                 <div class="info-entrega-grid">
-                    <span class="info-label">Apartamento:</span>
-                    <span class="info-valor">{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }} - {{ $paquete->apartamento?->torre ?? 'Sin torre' }}</span>
-
-                    <span class="info-label">Residente:</span>
-                    <span class="info-valor">{{ $paquete->residente?->nombre ?? 'Sin residente asignado' }}</span>
-
+                    <span class="info-label">Casa:</span>
+                    <span class="info-valor">{{ $paquete->casa?->codigo ?? 'Casa no registrada' }}</span>
+                    <span class="info-label">Destinatario:</span>
+                    <span class="info-valor">{{ $paquete->destinatario ?: ($paquete->residente?->nombre ?? 'Sin destinatario registrado') }}</span>
                     <span class="info-label">Mensajería:</span>
                     <span class="info-valor">{{ $paquete->empresa }}</span>
-
+                    <span class="info-label">Guía:</span>
+                    <span class="info-valor">{{ $paquete->guia ?: 'Sin guía' }}</span>
                     <span class="info-label">Fecha:</span>
                     <span class="info-valor">{{ $paquete->created_at->format('d/m/Y - H:i') }}</span>
                 </div>
@@ -38,145 +36,70 @@
                         Nombre: {{ $paquete->autorizacionActiva->nombre_autorizado }}<br>
                         Documento: {{ $paquete->autorizacionActiva->documento_autorizado }}<br>
                         Relación: {{ $paquete->autorizacionActiva->relacion }}
-                        @if ($paquete->autorizacionActiva->observacion)
-                            <br>Observación: {{ $paquete->autorizacionActiva->observacion }}
-                        @endif
                     </div>
                 @endif
 
-                <div class="grupo-input" style="margin-top: 18px;">
-                    <label>¿Quién recibe el paquete?</label>
-                    <label style="font-weight: 400;"><input type="radio" name="tipo_receptor" value="residente" @checked(old('tipo_receptor', 'residente') === 'residente')> Entrega al residente: {{ $paquete->residente?->nombre }}</label>
-                    @if ($paquete->autorizacionActiva)
-                        <label style="font-weight: 400;"><input type="radio" name="tipo_receptor" value="autorizado" @checked(old('tipo_receptor') === 'autorizado')> Entrega a persona autorizada: {{ $paquete->autorizacionActiva->nombre_autorizado }}</label>
-                    @endif
-                    @error('tipo_receptor')
-                        <div class="alerta-error">{{ $message }}</div>
-                    @enderror
-                </div>
+                @if ($codigoManual)
+                    <div class="alerta-error" role="status" style="margin-top: 16px;">
+                        @if ($estadoWhatsApp === 'invalid_phone')
+                            WhatsApp no se envió porque la casa no tiene un teléfono de residente válido en formato internacional.
+                        @elseif ($estadoWhatsApp === 'failed')
+                            El proveedor no confirmó el envío por WhatsApp.
+                        @else
+                            WhatsApp no está configurado; no se realizó ningún envío.
+                        @endif
+                        Comunica este código al residente por un canal seguro: <strong>{{ $codigoManual }}</strong>
+                    </div>
+                @endif
 
-                <p class="titulo-firma">Firma de quien recibe</p>
+                @if (session('success'))
+                    <div class="alerta-exito" role="status">{{ session('success') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="alerta-error" role="alert">{{ session('error') }}</div>
+                @endif
 
-                <div class="caja-firma">
-                    <canvas id="lienzo-firma" aria-label="Área para registrar la firma digital"></canvas>
-                </div>
-
-                @error('firma')
-                    <div class="alerta-error">{{ $message }}</div>
-                @enderror
-
-                @error('entrega')
-                    <div class="alerta-error">{{ $message }}</div>
-                @enderror
-
-                <button type="button" class="btn-limpiar-firma" id="btn-limpiar">Limpiar firma</button>
-
-                <button type="submit" class="btn-confirmar-verde">Confirmar Entrega</button>
-            </form>
-        </div>
+                @if (! $codigoValidado)
+                    <form action="{{ route('entrega.validar', $paquete) }}" method="post" style="margin-top: 20px;">
+                        @csrf
+                        <div class="grupo-input">
+                            <label for="codigo_entrega">Código único de entrega</label>
+                            <input id="codigo_entrega" name="codigo_entrega" type="text" maxlength="10" autocomplete="off" required value="{{ old('codigo_entrega') }}" aria-describedby="codigo-ayuda">
+                            <small id="codigo-ayuda">Verifica que el código corresponda a este paquete, su casa y su destinatario.</small>
+                            @error('codigo_entrega')
+                                <div class="alerta-error" role="alert">{{ $message }}</div>
+                            @enderror
+                            @error('entrega')
+                                <div class="alerta-error" role="alert">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn-confirmar-verde">Validar código</button>
+                    </form>
+                @else
+                    <form action="{{ route('entrega.confirmar', $paquete) }}" method="post" style="margin-top: 20px;">
+                        @csrf
+                        <div class="alerta-exito" role="status">Código válido para este paquete. Confirma quién lo recibe.</div>
+                        <div class="grupo-input">
+                            <label>¿Quién recibe el paquete?</label>
+                            <label style="font-weight: 400;">
+                                <input type="radio" name="tipo_receptor" value="residente" @checked(old('tipo_receptor', 'residente') === 'residente') required>
+                                Destinatario: {{ $paquete->destinatario ?: ($paquete->residente?->nombre ?? 'Destinatario registrado') }}
+                            </label>
+                            @if ($paquete->autorizacionActiva)
+                                <label style="font-weight: 400;">
+                                    <input type="radio" name="tipo_receptor" value="autorizado" @checked(old('tipo_receptor') === 'autorizado')>
+                                    Persona autorizada: {{ $paquete->autorizacionActiva->nombre_autorizado }}
+                                </label>
+                            @endif
+                            @error('tipo_receptor')
+                                <div class="alerta-error" role="alert">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn-confirmar-verde">Confirmar entrega</button>
+                    </form>
+                @endif
+            </div>
+        </main>
     </div>
-
-    <script>
-        const canvas = document.getElementById('lienzo-firma');
-        const ctx = canvas.getContext('2d');
-        const btnLimpiar = document.getElementById('btn-limpiar');
-        const formEntrega = document.getElementById('form-entrega');
-        const firma = document.getElementById('firma');
-
-        function ajustarCanvas() {
-            const ancho = Math.max(1, Math.round(canvas.clientWidth));
-            const alto = Math.max(1, Math.round(canvas.clientHeight));
-
-            if (canvas.width === ancho && canvas.height === alto) return;
-
-            // Cambiar las dimensiones borra el canvas; conservar el trazo antes de ajustarlo.
-            const copia = document.createElement('canvas');
-            copia.width = canvas.width;
-            copia.height = canvas.height;
-            copia.getContext('2d').drawImage(canvas, 0, 0);
-            canvas.width = ancho;
-            canvas.height = alto;
-            ctx.drawImage(copia, 0, 0, ancho, alto);
-        }
-
-        window.addEventListener('resize', ajustarCanvas);
-        ajustarCanvas();
-
-        let dibujando = false;
-        let ultimaX = 0;
-        let ultimaY = 0;
-
-        function obtenerPosicion(evento) {
-            const rect = canvas.getBoundingClientRect();
-            let clienteX = evento.clientX;
-            let clienteY = evento.clientY;
-
-            if (evento.touches && evento.touches.length > 0) {
-                clienteX = evento.touches[0].clientX;
-                clienteY = evento.touches[0].clientY;
-            }
-
-            return {
-                x: clienteX - rect.left,
-                y: clienteY - rect.top,
-            };
-        }
-
-        function iniciarDibujo(evento) {
-            dibujando = true;
-            const posicion = obtenerPosicion(evento);
-            ultimaX = posicion.x;
-            ultimaY = posicion.y;
-        }
-
-        function dibujar(evento) {
-            if (!dibujando) return;
-
-            evento.preventDefault();
-            const posicion = obtenerPosicion(evento);
-
-            ctx.beginPath();
-            ctx.moveTo(ultimaX, ultimaY);
-            ctx.lineTo(posicion.x, posicion.y);
-            ctx.strokeStyle = '#0f172a';
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-
-            ultimaX = posicion.x;
-            ultimaY = posicion.y;
-        }
-
-        function detenerDibujo() {
-            dibujando = false;
-        }
-
-        canvas.addEventListener('mousedown', iniciarDibujo);
-        canvas.addEventListener('mousemove', dibujar);
-        canvas.addEventListener('mouseup', detenerDibujo);
-        canvas.addEventListener('mouseout', detenerDibujo);
-        canvas.addEventListener('touchstart', iniciarDibujo, { passive: false });
-        canvas.addEventListener('touchmove', dibujar, { passive: false });
-        canvas.addEventListener('touchend', detenerDibujo);
-
-        btnLimpiar.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            firma.value = '';
-        });
-
-        formEntrega.addEventListener('submit', (evento) => {
-            const pixeles = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            const tieneTrazo = pixeles.some((valor, indice) => indice % 4 === 3 && valor !== 0);
-
-            if (! tieneTrazo) {
-                evento.preventDefault();
-                alert('Debes registrar una firma antes de confirmar la entrega.');
-
-                return;
-            }
-
-            firma.value = canvas.toDataURL('image/png');
-        });
-    </script>
 </body>
 </html>

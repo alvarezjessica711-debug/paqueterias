@@ -1,7 +1,7 @@
 <aside class="sidebar-navegacion">
     <div class="image-container">
         <a href="{{ route('dashboard') }}" title="Volver al panel principal">
-            <img src="{{ asset('Imagenes/logo.png') }}" alt="Logo Valle de San Remo" class="img-logo">
+            <img src="/Imagenes/logo.png" alt="Logo Valle de San Remo" class="img-logo">
         </a>
     </div>
     <nav>
@@ -29,14 +29,17 @@
                     </a>
                 </li>
                 <li><a href="{{ route('guardas') }}" class="item-menu {{ request()->routeIs('guardas*') ? 'activo' : '' }}"><i class="fas fa-shield-alt"></i> Vigilantes</a></li>
-                <li><a href="{{ route('apartamentos') }}" class="item-menu {{ request()->routeIs('apartamentos*') ? 'activo' : '' }}"><i class="fas fa-building"></i> Apartamentos</a></li>
+                <li><a href="{{ route('casas') }}" class="item-menu {{ request()->routeIs('casas*') ? 'activo' : '' }}"><i class="fas fa-house"></i> Casas</a></li>
                 <li><a href="{{ route('reportes') }}" class="item-menu {{ request()->routeIs('reportes*') ? 'activo' : '' }}"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-            @else
+            @elseif (auth()->user()->rol === 'residente')
                 <li>
                     <a href="{{ route('mis-paquetes') }}" class="item-menu {{ request()->routeIs('mis-paquetes') ? 'activo' : '' }}">
                         <i class="fas fa-boxes-stacked"></i> Mis paquetes
                     </a>
                 </li>
+            @endif
+            @if (auth()->user()->rol === 'superadmin')
+                <li><a href="{{ route('usuarios') }}" class="item-menu {{ request()->routeIs('usuarios*') ? 'activo' : '' }}"><i class="fas fa-users-cog"></i> Usuarios y roles</a></li>
             @endif
             <li>
                 <a href="{{ route('historial') }}" class="item-menu {{ request()->routeIs('historial') ? 'activo' : '' }}">

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Paquete extends Model
 {
@@ -14,14 +15,38 @@ class Paquete extends Model
         'apartamento_id',
         'entregado_por',
         'empresa',
+        'destinatario',
+        'direccion',
         'guia',
         'foto',
         'detalles',
         'estado',
         'fecha_entrega',
         'recibido_por',
-        'firma',
+        'codigo_entrega',
+        'codigo_entrega_validado_por',
+        'codigo_entrega_validado_at',
+        'codigo_entrega_usado_en',
+        'codigo_entrega_whatsapp_aceptado_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Paquete $paquete): void {
+            if (blank($paquete->codigo_entrega)) {
+                $paquete->codigo_entrega = self::generarCodigoUnico();
+            }
+        });
+    }
+
+    public static function generarCodigoUnico(): string
+    {
+        do {
+            $codigo = Str::upper(Str::random(10));
+        } while (self::query()->where('codigo_entrega', $codigo)->exists());
+
+        return $codigo;
+    }
 
     public function residente(): BelongsTo
     {
@@ -30,7 +55,12 @@ class Paquete extends Model
 
     public function apartamento(): BelongsTo
     {
-        return $this->belongsTo(Apartamento::class);
+        return $this->casa();
+    }
+
+    public function casa(): BelongsTo
+    {
+        return $this->belongsTo(Apartamento::class, 'apartamento_id');
     }
 
     public function entregadoPor(): BelongsTo
@@ -43,6 +73,11 @@ class Paquete extends Model
         return $this->hasMany(AutorizacionRetiro::class);
     }
 
+    public function auditorias(): HasMany
+    {
+        return $this->hasMany(PaqueteAuditoria::class)->latest('created_at');
+    }
+
     public function autorizacionActiva(): HasOne
     {
         return $this->hasOne(AutorizacionRetiro::class)
@@ -53,6 +88,9 @@ class Paquete extends Model
     {
         return [
             'fecha_entrega' => 'datetime',
+            'codigo_entrega_validado_at' => 'datetime',
+            'codigo_entrega_usado_en' => 'datetime',
+            'codigo_entrega_whatsapp_aceptado_at' => 'datetime',
         ];
     }
 }

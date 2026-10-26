@@ -16,16 +16,16 @@ test('registering a package notifies only the user assigned to its resident', fu
     $vigilante = User::factory()->create(['rol' => 'vigilante']);
     $residente = Residente::factory()->create(['nombre' => 'María Fernanda López']);
     $otroResidente = Residente::factory()->create();
-    $apartamento = Apartamento::factory()->create(['torre' => 'Torre 2', 'numero' => '204']);
+    $apartamento = Apartamento::factory()->create(['codigo' => 'C10']);
     $residente->apartamentos()->attach($apartamento);
     $usuarioResidente = User::factory()->create(['rol' => 'residente', 'residente_id' => $residente->id]);
     $otroUsuario = User::factory()->create(['rol' => 'residente', 'residente_id' => $otroResidente->id]);
 
     $this->actingAs($vigilante)
         ->post(route('paquetes.store'), [
-            'residente_id' => $residente->id,
-            'apartamento_id' => $apartamento->id,
+            'casa_id' => $apartamento->id,
             'empresa' => 'Servientrega',
+            'destinatario' => 'Laura',
             'guia' => 'SER123456',
             'detalles' => 'Caja frágil',
         ])
@@ -46,7 +46,8 @@ test('registering a package notifies only the user assigned to its resident', fu
             return $mail->subject === 'Nuevo paquete recibido - Valle de San Remo'
                 && in_array('Guía: SER123456', $mail->introLines, true)
                 && in_array('Empresa: Servientrega', $mail->introLines, true)
-                && in_array('Apartamento: Torre 2 - Apto. 204', $mail->introLines, true)
+                && in_array('Destinatario: Laura', $mail->introLines, true)
+                && in_array('Casa: C10', $mail->introLines, true)
                 && in_array('Estado: Pendiente', $mail->introLines, true)
                 && in_array('Observación: Caja frágil', $mail->introLines, true);
         },
@@ -65,8 +66,7 @@ test('a package is still registered when its resident has no user account', func
 
     $this->actingAs($vigilante)
         ->post(route('paquetes.store'), [
-            'residente_id' => $residente->id,
-            'apartamento_id' => $apartamento->id,
+            'casa_id' => $apartamento->id,
             'empresa' => 'Coordinadora',
             'guia' => 'COOR-2026-001',
         ])
@@ -76,6 +76,8 @@ test('a package is still registered when its resident has no user account', func
     $this->assertDatabaseHas('paquetes', [
         'residente_id' => $residente->id,
         'apartamento_id' => $apartamento->id,
+        'destinatario' => $residente->nombre,
+        'direccion' => $apartamento->codigo,
         'guia' => 'COOR-2026-001',
         'estado' => 'Pendiente',
     ]);

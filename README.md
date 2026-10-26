@@ -15,7 +15,7 @@ La aplicación principal utiliza **Laravel Blade**. Incluye una demostración in
 - Consulta e historial con filtros.
 - Entrega de paquetes con firma y registro de quien recibe y del vigilante responsable.
 - Autorizaciones de retiro por terceros.
-- Gestión de residentes, vigilantes y apartamentos.
+- Gestión de residentes, vigilantes y casas.
 - Reportes y exportación CSV.
 - Notificación de nuevos paquetes al usuario asociado al residente.
 
@@ -23,7 +23,7 @@ En la configuración de demostración, el correo usa el transporte `log`: los me
 
 ## Roles actuales
 
-- **Administrador:** gestiona residentes, vigilantes y apartamentos; consulta historial, reportes y configuración.
+- **Administrador:** gestiona residentes, vigilantes y casas; consulta historial, reportes y configuración.
 - **Vigilante:** registra paquetes, consulta pendientes y confirma entregas.
 - **Residente:** consulta sus paquetes e historial y autoriza a terceros para retirarlos.
 
@@ -64,7 +64,7 @@ npm run build
 
 Si ya tienes una instalación, conserva su `.env`, su clave y su base de datos. No reemplaces esos archivos para seguir estas instrucciones.
 
-Las cuentas y los datos de demostración se preparan por separado. El seeder general no reproduce por sí solo todos los datos de la demostración; el seeder específico de María requiere que su cuenta, apartamento y vigilante ya existan. No es necesario ejecutar seeders para compilar los recursos.
+Las cuentas y los datos de demostración se preparan por separado. El seeder general no reproduce por sí solo todos los datos de la demostración; el seeder específico de María requiere que su cuenta, casa y vigilante ya existan. No es necesario ejecutar seeders para compilar los recursos.
 
 ## Cómo ejecutar Laravel
 

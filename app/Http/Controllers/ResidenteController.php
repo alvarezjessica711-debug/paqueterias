@@ -17,43 +17,39 @@ class ResidenteController extends Controller
     public function index(): View
     {
         $residentes = Residente::query()
-            ->with(['apartamentos', 'user'])
+            ->with(['casas', 'user'])
             ->orderBy('nombre')
             ->get();
 
-        $apartamentos = Apartamento::query()
+        $casas = Apartamento::query()
             ->where('activo', true)
-            ->orderBy('torre')
-            ->orderBy('numero')
+            ->orderBy('codigo')
             ->get();
 
-        return view('residentes', compact('residentes', 'apartamentos'));
+        return view('residentes', compact('residentes', 'casas'));
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge(['casas' => $request->input('casas', $request->input('apartamentos'))]);
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:30'],
             'correo' => ['nullable', 'email', 'max:255'],
-            'apartamentos' => ['required', 'array', 'min:1'],
-            'apartamentos.*' => ['integer', 'exists:apartamentos,id'],
-            'crear_cuenta' => ['nullable', 'boolean'],
-            'email_acceso' => ['nullable', 'required_if:crear_cuenta,1', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['nullable', 'required_if:crear_cuenta,1', 'string', 'min:8', 'confirmed'],
+            'casas' => ['required', 'array', 'min:1'],
+            'casas.*' => ['integer', 'exists:apartamentos,id'],
         ], [
             'nombre.required' => 'Debes ingresar el nombre del residente.',
             'correo.email' => 'El correo electronico no es valido.',
-            'apartamentos.required' => 'Debes asociar por lo menos un apartamento.',
-            'apartamentos.min' => 'Debes asociar por lo menos un apartamento.',
+            'casas.required' => 'Debes asociar por lo menos una casa.',
+            'casas.min' => 'Debes asociar por lo menos una casa.',
+            'casas.*.exists' => 'La casa seleccionada no existe.',
+            'casas.*.integer' => 'La casa seleccionada no es válida.',
         ]);
 
         DB::transaction(function () use ($validated): void {
             $residente = Residente::query()->create(['nombre' => $validated['nombre'], 'telefono' => $validated['telefono'] ?? null, 'correo' => $validated['correo'] ?? null, 'activo' => true]);
-            $residente->apartamentos()->sync($validated['apartamentos']);
-            if (! empty($validated['crear_cuenta'])) {
-                User::query()->create(['name' => $residente->nombre, 'email' => $validated['email_acceso'], 'password' => Hash::make($validated['password']), 'rol' => 'residente', 'residente_id' => $residente->id, 'activo' => true]);
-            }
+            $residente->casas()->sync($validated['casas']);
         });
 
         return redirect()
@@ -63,18 +59,19 @@ class ResidenteController extends Controller
 
     public function edit(Residente $residente): View
     {
-        $residente->load(['apartamentos', 'user']);
-        $apartamentos = Apartamento::query()->where('activo', true)->orWhereIn('id', $residente->apartamentos->pluck('id'))->orderBy('torre')->orderBy('numero')->get();
+        $residente->load(['casas', 'user']);
+        $casas = Apartamento::query()->where('activo', true)->orWhereIn('id', $residente->casas->pluck('id'))->orderBy('codigo')->get();
 
-        return view('residente-editar', compact('residente', 'apartamentos'));
+        return view('residente-editar', compact('residente', 'casas'));
     }
 
     public function update(Request $request, Residente $residente): RedirectResponse
     {
-        $data = $request->validate(['nombre' => ['required', 'string', 'max:255'], 'telefono' => ['nullable', 'string', 'max:30'], 'correo' => ['nullable', 'email', 'max:255'], 'apartamentos' => ['required', 'array', 'min:1'], 'apartamentos.*' => ['integer', 'exists:apartamentos,id'], 'email_acceso' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($residente->user)], 'password' => ['nullable', 'string', 'min:8', 'confirmed']]);
+        $request->merge(['casas' => $request->input('casas', $request->input('apartamentos'))]);
+        $data = $request->validate(['nombre' => ['required', 'string', 'max:255'], 'telefono' => ['nullable', 'string', 'max:30'], 'correo' => ['nullable', 'email', 'max:255'], 'casas' => ['required', 'array', 'min:1'], 'casas.*' => ['integer', 'exists:apartamentos,id'], 'email_acceso' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($residente->user)], 'password' => ['nullable', 'string', 'min:8', 'confirmed']]);
         DB::transaction(function () use ($data, $residente) {
             $residente->update(['nombre' => $data['nombre'], 'telefono' => $data['telefono'] ?? null, 'correo' => $data['correo'] ?? null]);
-            $residente->apartamentos()->sync($data['apartamentos']);
+            $residente->casas()->sync($data['casas']);
             if ($residente->user) {
                 $u = ['name' => $residente->nombre];
                 if (! empty($data['email_acceso'])) {
@@ -100,7 +97,7 @@ class ResidenteController extends Controller
     public function createAccount(Residente $residente): View
     {
         abort_if($residente->user()->exists(), 422, 'Este residente ya tiene una cuenta de acceso.');
-        $residente->load('apartamentos');
+        $residente->load('casas');
 
         return view('residente-crear-cuenta', compact('residente'));
     }
@@ -109,7 +106,7 @@ class ResidenteController extends Controller
     {
         $data = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:12', 'confirmed'],
         ]);
 
         DB::transaction(function () use ($residente, $data): void {
@@ -126,6 +123,6 @@ class ResidenteController extends Controller
             ]);
         });
 
-        return redirect()->route('residentes')->with('success', 'Cuenta creada correctamente.');
+        return redirect()->route('usuarios')->with('success', 'Cuenta creada correctamente.');
     }
 }

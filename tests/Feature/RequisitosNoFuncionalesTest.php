@@ -12,22 +12,6 @@ use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
-function firmaRnfValida(): string
-{
-    $imagen = imagecreatetruecolor(200, 100);
-    imagealphablending($imagen, false);
-    imagesavealpha($imagen, true);
-    imagefill($imagen, 0, 0, imagecolorallocatealpha($imagen, 255, 255, 255, 127));
-    imagealphablending($imagen, true);
-    imageline($imagen, 20, 70, 180, 30, imagecolorallocate($imagen, 15, 23, 42));
-    ob_start();
-    imagepng($imagen);
-    $contenido = (string) ob_get_clean();
-    imagedestroy($imagen);
-
-    return 'data:image/png;base64,'.base64_encode($contenido);
-}
-
 function paqueteRnf(array $atributos = []): Paquete
 {
     $residente = $atributos['residente'] ?? Residente::factory()->create();
@@ -47,7 +31,7 @@ test('vigilante registration form is usable and responsive-ready', function () {
     $vigilante = User::factory()->create(['rol' => 'vigilante']);
     $residente = Residente::factory()->create();
     $apartamento = Apartamento::factory()->create();
-    $apartamentoInactivo = Apartamento::factory()->create(['torre' => 'Torre Oculta', 'activo' => false]);
+    $apartamentoInactivo = Apartamento::factory()->create(['codigo' => 'F99', 'activo' => false]);
     $residente->apartamentos()->attach($apartamento);
     $residente->apartamentos()->attach($apartamentoInactivo);
 
@@ -56,16 +40,17 @@ test('vigilante registration form is usable and responsive-ready', function () {
         ->assertSee('name="viewport"', false)
         ->assertDontSee('Paso 1 de 2')
         ->assertDontSee('Paso 2 de 2')
-        ->assertSee('residente_busqueda')
-        ->assertSee('apartamento_id')
-        ->assertSee('Seleccione primero un residente')
-        ->assertSee('const residentes =', false)
+        ->assertSee('Código de casa')
+        ->assertSee('casa_id')
+        ->assertSee('const casas =', false)
+        ->assertDontSee('residente_busqueda')
+        ->assertDontSee('id="direccion"', false)
         ->assertSee('empresa')
         ->assertSee('guia')
         ->assertSee('foto')
         ->assertSee('detalles')
         ->assertSee('Registrar y notificar al residente')
-        ->assertDontSee('Torre Oculta');
+        ->assertDontSee('F99');
 });
 
 test('security middleware isolates roles, resident data, inactive accounts and invalid files', function () {
@@ -86,7 +71,8 @@ test('security middleware isolates roles, resident data, inactive accounts and i
     $this->actingAs($usuarioResidente)->get(route('mis-paquetes'))->assertDontSee('AJENO-RNF');
     $this->actingAs($usuarioResidente)->post(route('autorizaciones.store', paqueteRnf(['residente' => $residenteDos, 'apartamento' => $apartamentoDos])))->assertForbidden();
     $this->actingAs($vigilante)->from(route('registro-paquetes'))->post(route('paquetes.store'), [
-        'residente_id' => $residenteUno->id, 'apartamento_id' => $apartamentoUno->id, 'empresa' => 'Empresa', 'guia' => 'ARCHIVO-RNF',
+        'apartamento_id' => $apartamentoUno->id, 'empresa' => 'Empresa', 'guia' => 'ARCHIVO-RNF',
+        'destinatario' => 'Residente',
         'foto' => UploadedFile::fake()->create('archivo.exe', 100, 'application/x-msdownload'),
     ])->assertSessionHasErrors('foto');
     $inactivo = User::factory()->create(['rol' => 'vigilante', 'activo' => false]);
@@ -113,7 +99,8 @@ test('package registration and notification complete within three seconds in the
 
     $inicio = hrtime(true);
     $this->actingAs($vigilante)->post(route('paquetes.store'), [
-        'residente_id' => $residente->id, 'apartamento_id' => $apartamento->id, 'empresa' => 'Entrega Rápida', 'guia' => 'RNF-RAPIDO',
+        'apartamento_id' => $apartamento->id, 'empresa' => 'Entrega Rápida', 'guia' => 'RNF-RAPIDO',
+        'destinatario' => 'Residente',
     ])->assertRedirect(route('confirmacion'));
     $duracionSegundos = (hrtime(true) - $inicio) / 1_000_000_000;
 
@@ -127,19 +114,22 @@ test('delivery traceability is server controlled and immutable after delivery', 
     $apartamento = Apartamento::factory()->create();
     $paquete = paqueteRnf(['residente' => $residente, 'apartamento' => $apartamento]);
 
+    $this->actingAs($vigilante)->post(route('entrega.validar', $paquete), ['codigo_entrega' => $paquete->codigo_entrega])->assertSessionHas('success');
     $this->actingAs($vigilante)->post(route('entrega.confirmar', $paquete), [
-        'tipo_receptor' => 'residente', 'firma' => firmaRnfValida(),
-        'entregado_por' => $otroVigilante->id, 'fecha_entrega' => '2000-01-01 00:00:00', 'recibido_por' => 'Nombre manipulado',
+        'tipo_receptor' => 'residente',
+        'entregado_por' => $otroVigilante->id,
+        'fecha_entrega' => '2000-01-01 00:00:00',
+        'recibido_por' => 'Nombre manipulado',
     ])->assertRedirect(route('historial'));
 
     $entregado = $paquete->fresh();
     expect($entregado->estado)->toBe('Entregado')->and($entregado->entregado_por)->toBe($vigilante->id)->and($entregado->recibido_por)->toBe($residente->nombre)->and($entregado->fecha_entrega->isToday())->toBeTrue();
-    $trazabilidad = [$entregado->entregado_por, $entregado->recibido_por, $entregado->fecha_entrega->format('c'), $entregado->firma];
+    $trazabilidad = [$entregado->entregado_por, $entregado->recibido_por, $entregado->fecha_entrega->format('c'), $entregado->codigo_entrega_usado_en->format('c')];
 
     $this->actingAs($otroVigilante)->post(route('entrega.confirmar', $entregado), [
-        'tipo_receptor' => 'residente', 'firma' => firmaRnfValida(), 'entregado_por' => $otroVigilante->id,
+        'tipo_receptor' => 'residente', 'entregado_por' => $otroVigilante->id,
     ])->assertSessionHas('error', 'Este paquete ya fue entregado.');
-    expect([$entregado->fresh()->entregado_por, $entregado->fresh()->recibido_por, $entregado->fresh()->fecha_entrega->format('c'), $entregado->fresh()->firma])->toBe($trazabilidad);
+    expect([$entregado->fresh()->entregado_por, $entregado->fresh()->recibido_por, $entregado->fresh()->fecha_entrega->format('c'), $entregado->fresh()->codigo_entrega_usado_en->format('c')])->toBe($trazabilidad);
 });
 
 test('delivery to an authorized person consumes the authorization with traceability', function () {
@@ -152,7 +142,8 @@ test('delivery to an authorized person consumes the authorization with traceabil
         'documento_autorizado' => '123456', 'relacion' => 'Familiar', 'estado' => AutorizacionRetiro::ACTIVA,
     ]);
 
-    $this->actingAs($vigilante)->post(route('entrega.confirmar', $paquete), ['tipo_receptor' => 'autorizado', 'firma' => firmaRnfValida()])->assertSessionHas('success');
+    $this->actingAs($vigilante)->post(route('entrega.validar', $paquete), ['codigo_entrega' => $paquete->codigo_entrega])->assertSessionHas('success');
+    $this->actingAs($vigilante)->post(route('entrega.confirmar', $paquete), ['tipo_receptor' => 'autorizado'])->assertSessionHas('success');
 
     expect($paquete->fresh()->recibido_por)->toBe('Tercero RNF')->and($paquete->fresh()->entregado_por)->toBe($vigilante->id)->and($paquete->fresh()->fecha_entrega)->not->toBeNull()->and($autorizacion->fresh()->estado)->toBe(AutorizacionRetiro::UTILIZADA);
 });

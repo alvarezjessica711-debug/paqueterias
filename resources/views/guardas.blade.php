@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vigilantes - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -30,17 +30,6 @@
                     </ul>
                 </div>
             @endif
-
-            <section class="contenedor-formulario">
-                <form class="formulario-paquete" method="post" action="{{ route('guardas.store') }}">
-                    @csrf
-                    <div class="grupo-input"><label for="name"><i class="fas fa-user"></i> Nombre completo</label><input id="name" name="name" value="{{ old('name') }}" placeholder="Nombre completo" required></div>
-                    <div class="grupo-input"><label for="email"><i class="fas fa-envelope"></i> Correo</label><input id="email" name="email" type="email" value="{{ old('email') }}" placeholder="correo@ejemplo.com" required></div>
-                    <div class="grupo-input"><label for="password"><i class="fas fa-lock"></i> Contraseña</label><input id="password" name="password" type="password" placeholder="Mínimo 8 caracteres" required></div>
-                    <div class="grupo-input"><label for="password_confirmation"><i class="fas fa-lock"></i> Confirmar contraseña</label><input id="password_confirmation" name="password_confirmation" type="password" placeholder="Repite la contraseña" required></div>
-                    <div class="zona-botones"><button class="btn-notificar"><i class="fas fa-user-plus"></i> Crear vigilante</button></div>
-                </form>
-            </section>
 
             <div class="contenedor-tabla">
                 <table class="tabla-datos">

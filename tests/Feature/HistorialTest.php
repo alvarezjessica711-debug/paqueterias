@@ -15,7 +15,7 @@ test('the administrator can audit delivery traceability in history', function ()
     $residente = Residente::factory()->create([
         'nombre' => 'Camila Torres',
     ]);
-    $apartamento = Apartamento::factory()->create(['torre' => 'Torre 2', 'numero' => '203']);
+    $apartamento = Apartamento::factory()->create(['codigo' => 'B20']);
     $residente->apartamentos()->attach($apartamento);
     $paquete = Paquete::query()->create([
         'residente_id' => $residente->id,
@@ -27,7 +27,6 @@ test('the administrator can audit delivery traceability in history', function ()
         'entregado_por' => $vigilante->id,
         'fecha_entrega' => now(),
         'recibido_por' => 'Camila Torres',
-        'firma' => 'data:image/png;base64,firma-de-prueba',
     ]);
     AutorizacionRetiro::query()->create([
         'paquete_id' => $paquete->id,
@@ -50,6 +49,7 @@ test('the administrator can audit delivery traceability in history', function ()
         ->assertSeeText('123456789')
         ->assertSeeText('Estado autorización:')
         ->assertSeeText('Utilizada')
-        ->assertSeeText('Ver firma')
+        ->assertDontSeeText('Ver firma')
+        ->assertDontSee('data:image/png;base64', false)
         ->assertDontSeeText('08/05/2024');
 });

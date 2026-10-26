@@ -18,7 +18,7 @@ class MariaPaquetesDemoSeeder extends Seeder
             if ($usuario->rol !== 'residente' || ! $usuario->activo || ! $residente->activo || $residente->nombre !== 'María Fernanda López') {
                 throw new RuntimeException('La cuenta no corresponde a la residente activa esperada.');
             }
-            $apartamento = $residente->apartamentos()->where('activo', true)->where('torre', 'Torre 2')->where('numero', '204')->sole();
+            $casa = $residente->casas()->where('activo', true)->where('codigo', 'C1')->sole();
             $vigilante = User::query()->where('email', 'vigilante@valledesanremo.test')->where('rol', 'vigilante')->where('activo', true)->sole();
 
             $registros = [
@@ -51,7 +51,7 @@ class MariaPaquetesDemoSeeder extends Seeder
                 // Inserción histórica sin eventos de modelo ni envío de notificaciones.
                 DB::table('paquetes')->insert([
                     'residente_id' => $residente->id,
-                    'apartamento_id' => $apartamento->id,
+                    'apartamento_id' => $casa->id,
                     'empresa' => $empresa,
                     'guia' => $guia,
                     'detalles' => 'DEMO académica: registro histórico simulado; firma DEMO sin valor probatorio.',

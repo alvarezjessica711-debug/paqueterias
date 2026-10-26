@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valle de San Remo - Panel de Control</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -23,27 +23,24 @@
                     @if ($errors->any())
                         <div class="alerta-error" role="alert">Revisa los campos marcados antes de registrar el paquete.</div>
                     @endif
-                    <div class="grupo-input full-width">
-                        <label for="residente_busqueda"><i class="fas fa-user"></i> Residente</label>
-                        <input id="residente_busqueda" list="residentes_disponibles" type="search" placeholder="Escriba un nombre, por ejemplo Laura" autocomplete="off" required>
-                        <input id="residente_id" name="residente_id" type="hidden" value="{{ old('residente_id') }}">
-                        <datalist id="residentes_disponibles">
-                            @foreach ($residentes as $residente)
-                                <option value="{{ $residente->nombre }} (ID #{{ $residente->id }})" label="{{ $residente->apartamentos->count() }} apartamento(s) activo(s)"></option>
-                            @endforeach
-                        </datalist>
-                        @error('residente_id')
-                            <span>{{ $message }}</span>
-                        @enderror
-                    </div>
                     <div class="grupo-input">
-                        <label for="apartamento_id"><i class="fas fa-door-closed"></i> Apartamento de entrega</label>
-                        <select id="apartamento_id" name="apartamento_id" required disabled>
-                            <option value="">Seleccione primero un residente</option>
+                        <label for="casa_id"><i class="fas fa-house"></i> Código de casa</label>
+                        <select id="casa_id" name="casa_id" required>
+                            <option value="">Selecciona una casa</option>
+                            @foreach ($casasParaFormulario as $casa)
+                                <option value="{{ $casa['id'] }}" @selected((string) old('casa_id') === (string) $casa['id'])>{{ $casa['codigo'] }}</option>
+                            @endforeach
                         </select>
-                        @error('apartamento_id')
+                        @error('casa_id')
                             <span>{{ $message }}</span>
                         @enderror
+                        <span id="aviso-residente" class="texto-ayuda" role="status" aria-live="polite"></span>
+                    </div>
+
+                    <div class="grupo-input">
+                        <label for="destinatario"><i class="fas fa-user-tag"></i> Destinatario</label>
+                        <input type="text" id="destinatario" name="destinatario" value="{{ old('destinatario') }}" maxlength="255" autocomplete="off" required>
+                        @error('destinatario')<span>{{ $message }}</span>@enderror
                     </div>
 
                     <div class="grupo-input">
@@ -56,7 +53,7 @@
 
                     <div class="grupo-input">
                         <label for="guia"><i class="fas fa-barcode"></i> Número de guía / Tracking</label>
-                        <input type="text" id="guia" name="guia" value="{{ old('guia') }}" placeholder="Ej. SER123456789" maxlength="100" required>
+                        <input type="text" id="guia" name="guia" value="{{ old('guia') }}" placeholder="Ej. SER123456789" maxlength="100">
                         @error('guia')
                             <span>{{ $message }}</span>
                         @enderror
@@ -89,41 +86,33 @@
         </main>
     </div>
     <script>
-        const residenteBusqueda = document.getElementById('residente_busqueda');
-        const residenteId = document.getElementById('residente_id');
-        const apartamentoSelect = document.getElementById('apartamento_id');
-        const apartamentoSeleccionado = @json(old('apartamento_id'));
-        const residentes = @json($residentesParaFormulario);
+        const casaSelect = document.getElementById('casa_id');
+        const destinatarioInput = document.getElementById('destinatario');
+        const avisoResidente = document.getElementById('aviso-residente');
+        const casas = @json($casasParaFormulario);
+        const huboDestinatarioAnterior = @json(old('destinatario') !== null);
 
-        function cargarApartamentos() {
-            const residente = residentes.find((opcion) => opcion.etiqueta === residenteBusqueda.value.trim());
-            const apartamentos = residente?.apartamentos ?? [];
+        function sincronizarDestinatario(cambioDeCasa = false) {
+            const casa = casas.find((opcion) => String(opcion.id) === casaSelect.value);
+            if (!casa) {
+                if (cambioDeCasa) {
+                    destinatarioInput.value = '';
+                }
+                avisoResidente.textContent = '';
+                return;
+            }
 
-            residenteId.value = residente?.id ?? '';
-            const mensaje = residente === undefined
-                ? 'Seleccione primero un residente'
-                : apartamentos.length === 0
-                    ? 'El residente no tiene apartamentos activos'
-                    : 'Seleccione un apartamento';
-            apartamentoSelect.replaceChildren(new Option(mensaje, ''));
-            apartamentoSelect.disabled = apartamentos.length === 0;
+            if (cambioDeCasa || (!huboDestinatarioAnterior && destinatarioInput.value === '')) {
+                destinatarioInput.value = casa.destinatario;
+            }
 
-            apartamentos.forEach((apartamento) => {
-                const option = new Option(apartamento.texto, apartamento.id);
-                option.selected = String(apartamento.id) === String(apartamentoSeleccionado);
-                apartamentoSelect.add(option);
-            });
+            avisoResidente.textContent = casa.tieneResidenteUnico
+                ? `Residente asociado: ${casa.destinatario}. Puedes cambiar el destinatario si el paquete es para otra persona de esta casa.`
+                : 'Esta casa no tiene un residente principal único registrado. Escribe manualmente el nombre del destinatario.';
         }
 
-        const residenteAnterior = residentes.find((residente) => String(residente.id) === residenteId.value);
-
-        if (residenteAnterior) {
-            residenteBusqueda.value = residenteAnterior.etiqueta;
-        }
-
-        residenteBusqueda.addEventListener('input', cargarApartamentos);
-        residenteBusqueda.addEventListener('change', cargarApartamentos);
-        cargarApartamentos();
+        casaSelect.addEventListener('change', () => sincronizarDestinatario(true));
+        sincronizarDestinatario();
     </script>
 </body>
 </html>

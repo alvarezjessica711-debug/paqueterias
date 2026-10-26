@@ -1,8 +1,8 @@
 # Servicios web REST — Valle de San Remo
 
-Base local: `/api`. Todos los servicios, salvo `POST /login`, requieren `Authorization: Bearer <token>`. Los tokens expiran a las 12 horas. Los JSON de paquetes excluyen siempre la firma digital; los datos de residente devueltos son solo ID, nombre y apartamentos activos. Esta API no altera las rutas web existentes.
+Base local: `/api`. Todos los servicios, salvo `POST /login`, requieren `Authorization: Bearer <token>`. Los tokens expiran a las 12 horas. Los JSON de paquetes excluyen siempre la firma digital; los datos de residente devueltos son solo ID, nombre y casas activas (el contrato conserva las claves técnicas existentes). Esta API no altera las rutas web existentes.
 
-Las historias/casos de uso relacionados se identifican por el flujo funcional existente en la aplicación: autenticación y control de acceso; registro de paquetes por portería; consulta de paquetes e historial; consulta de residentes y apartamentos para registrar paquetes; confirmación y trazabilidad de entrega. El repositorio no contiene identificadores de historias/casos de uso en texto verificable, por lo que se describen por su objetivo y no se atribuyen códigos no confirmados.
+Las historias/casos de uso relacionados se identifican por el flujo funcional existente en la aplicación: autenticación y control de acceso; registro de paquetes por portería; consulta de paquetes e historial; consulta de residentes y casas para registrar paquetes; confirmación y trazabilidad de entrega. El repositorio no contiene identificadores de historias/casos de uso en texto verificable, por lo que se describen por su objetivo y no se atribuyen códigos no confirmados.
 
 ## A. Autenticación API
 
@@ -48,7 +48,7 @@ Las historias/casos de uso relacionados se identifican por el flujo funcional ex
 - **Parámetros:** `estado` opcional (`Pendiente` o `Entregado`); `fecha_desde` y `fecha_hasta` opcionales; `per_page` opcional entre 1 y 100 (predeterminado 15); `page` estándar de paginación Laravel.
 - **Validaciones:** estado enumerado; fechas válidas y fecha hasta no anterior a fecha desde; límite de paginación.
 - **Postman:** `GET http://localhost:8000/api/paquetes?estado=Pendiente&fecha_desde=2026-10-01&per_page=10`, encabezado Bearer.
-- **Respuesta 200:** objeto paginado Laravel con `data`, `links` y `meta`. Cada paquete expone ID, estado, empresa, guía, detalles, ruta de foto, nombre/ID del residente y apartamento, y trazabilidad de entrega si aplica. No expone firma.
+- **Respuesta 200:** objeto paginado Laravel con `data`, `links` y `meta`. Cada paquete expone ID, estado, empresa, guía, detalles, ruta de foto, nombre/ID del residente y casa (`id`, `codigo`), y trazabilidad de entrega si aplica. No expone firma.
 - **Errores:** `401` sin token; `403` rol no autorizado o residente sin asociación; `422` filtros inválidos.
 - **Pruebas:** `package list filters and pagination are validated and bounded`; `residents only see their packages and cannot read another residents package`.
 
@@ -59,7 +59,7 @@ Las historias/casos de uso relacionados se identifican por el flujo funcional ex
 - **Rol y autenticación:** admin, vigilante o residente autenticado. El residente solo puede consultar el paquete asociado a su propio residente.
 - **Parámetros:** `paquete` es el ID existente.
 - **Postman:** `GET http://localhost:8000/api/paquetes/42`, encabezado Bearer.
-- **Respuesta 200:** `{"data":{"id":42,"estado":"Entregado","empresa":"Mensajería","guia":"ABC123","detalles":null,"foto":null,"residente":{"id":4,"nombre":"Residente API"},"apartamento":{"id":2,"torre":"A","numero":"101"},"entrega":{"fecha":"2026-10-16T12:00:00.000000Z","recibido_por":"Residente API","vigilante":"Vigilante"},"autorizacion_activa":null,"creado_en":"2026-10-16T10:00:00.000000Z"}}`.
+- **Respuesta 200:** `{"data":{"id":42,"estado":"Entregado","empresa":"Mensajería","guia":"ABC123","detalles":null,"foto":null,"residente":{"id":4,"nombre":"Residente API"},"casa":{"id":2,"codigo":"A1"},"entrega":{"fecha":"2026-10-16T12:00:00.000000Z","recibido_por":"Residente API","vigilante":"Vigilante"},"autorizacion_activa":null,"creado_en":"2026-10-16T10:00:00.000000Z"}}`.
 - **Errores:** `401` no autenticado; `403` paquete ajeno para residente; `404` ID inexistente.
 - **Prueba:** `residents only see their packages and cannot read another residents package`.
 
@@ -67,13 +67,13 @@ Las historias/casos de uso relacionados se identifican por el flujo funcional ex
 
 ### Buscar residentes activos
 
-- **Objetivo / caso relacionado:** encontrar residentes y apartamentos activos que el vigilante necesita al registrar un paquete.
+- **Objetivo / caso relacionado:** encontrar residentes y casas activas que el vigilante necesita al registrar un paquete.
 - **Método y ruta:** `GET /api/residentes`.
 - **Rol y autenticación:** admin o vigilante autenticado.
 - **Parámetros:** `busqueda` opcional por nombre (máximo 100 caracteres); `per_page` opcional entre 1 y 100.
-- **Validaciones:** tipo, longitud y límite de resultados. Solo residentes y apartamentos activos.
+- **Validaciones:** tipo, longitud y límite de resultados. Solo residentes y casas activas.
 - **Postman:** `GET http://localhost:8000/api/residentes?busqueda=Ana&per_page=10`, encabezado Bearer.
-- **Respuesta 200:** lista paginada con ID, nombre y apartamentos (`id`, `torre`, `numero`). No incluye correo, teléfono ni datos de cuenta.
+- **Respuesta 200:** lista paginada con ID, nombre y casas (`id`, `codigo`). No incluye correo, teléfono ni datos de cuenta.
 - **Errores:** `401` sin token; `403` rol residente; `422` parámetros inválidos.
 - **Prueba:** `resident lookup is role protected and exposes only necessary fields`.
 
@@ -84,16 +84,16 @@ Las historias/casos de uso relacionados se identifican por el flujo funcional ex
 - **Objetivo / caso relacionado:** registrar en portería un paquete recibido y enviar la notificación por correo existente cuando el residente tenga una cuenta con correo. No se afirma integración con WhatsApp ni otro canal externo.
 - **Método y ruta:** `POST /api/paquetes`.
 - **Rol y autenticación:** vigilante autenticado.
-- **Entrada JSON:** `residente_id`, `apartamento_id`, `empresa`, `guia`; opcionales `detalles` y `foto`. Para foto se envía `multipart/form-data`.
-- **Validaciones:** residente y apartamento existentes; empresa requerida hasta 255; guía requerida hasta 100; fotografía opcional JPEG/JPG/PNG/WebP hasta 5 MB; el residente y apartamento deben estar activos y relacionados.
+- **Entrada JSON:** `residente_id`, `casa_id`, `empresa`, `destinatario`, `direccion` y `guia`; opcionales `detalles` y `foto`. `casa_id` contiene el ID de la casa del catálogo. Para foto se envía `multipart/form-data`.
+- **Validaciones:** residente y número de casa existentes; empresa requerida hasta 255; guía requerida hasta 100; fotografía opcional JPEG/JPG/PNG/WebP hasta 5 MB; el residente y la casa deben estar activos y relacionados.
 - **Postman JSON:** `POST http://localhost:8000/api/paquetes`, Bearer y Body raw JSON:
 
 ```json
-{"residente_id":4,"apartamento_id":2,"empresa":"Mensajería","guia":"ABC123","detalles":"Caja mediana"}
+{"residente_id":4,"casa_id":2,"empresa":"Mensajería","destinatario":"Ana","direccion":"A1","guia":"ABC123","detalles":"Caja mediana"}
 ```
 
-- **Respuesta 201:** `{"data":{"id":43,"estado":"Pendiente","empresa":"Mensajería","guia":"ABC123","detalles":"Caja mediana","foto":null,"residente":{"id":4,"nombre":"Residente API"},"apartamento":{"id":2,"torre":"A","numero":"101"},"entrega":null,"autorizacion_activa":null,"creado_en":"2026-10-16T10:00:00.000000Z"},"notificacion_enviada":true}`. No se devuelve la firma.
-- **Errores:** `401` sin token; `403` rol no autorizado; `404` registro inexistente; `422` datos inválidos o apartamento no relacionado; `201` aunque el correo no se pueda enviar, en cuyo caso `notificacion_enviada` es `false`.
+- **Respuesta 201:** `{"data":{"id":43,"estado":"Pendiente","empresa":"Mensajería","guia":"ABC123","detalles":"Caja mediana","foto":null,"residente":{"id":4,"nombre":"Residente API"},"casa":{"id":2,"codigo":"A1"},"entrega":null,"autorizacion_activa":null,"creado_en":"2026-10-16T10:00:00.000000Z"},"notificacion_enviada":true}`. No se devuelve la firma.
+- **Errores:** `401` sin token; `403` rol no autorizado; `404` registro inexistente; `422` datos inválidos o casa no relacionada; `201` aunque el correo no se pueda enviar, en cuyo caso `notificacion_enviada` es `false`.
 - **Prueba:** `vigilante can register a package and invalid resident apartment relation is rejected`.
 
 ## E. Confirmación de entrega

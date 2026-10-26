@@ -9,6 +9,7 @@ use App\Http\Controllers\PaqueteController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ResidenteController;
 use App\Http\Controllers\ResidentePaqueteController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
@@ -20,7 +21,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'active'])->group(function () {
-    Route::middleware('role:admin,vigilante,residente')->group(function () {
+    Route::middleware('role:admin,vigilante,residente,superadmin')->group(function () {
         Route::get('/dashboard', [PaqueteController::class, 'dashboard'])->name('dashboard');
     });
 
@@ -29,8 +30,11 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/paquetes', [PaqueteController::class, 'index'])->name('paquetes');
         Route::post('/paquetes', [PaqueteController::class, 'store'])->name('paquetes.store');
         Route::get('/entrega/{paquete?}', [PaqueteController::class, 'entrega'])->name('entrega');
+        Route::post('/entrega/{paquete}/validar-codigo', [PaqueteController::class, 'validarCodigoEntrega'])->name('entrega.validar');
         Route::post('/entrega/{paquete}', [PaqueteController::class, 'confirmarEntrega'])->name('entrega.confirmar');
         Route::get('/consultar', [PaqueteController::class, 'consultar'])->name('consultar');
+        Route::get('/paquetes/{paquete}/editar', [PaqueteController::class, 'edit'])->name('paquetes.edit');
+        Route::patch('/paquetes/{paquete}', [PaqueteController::class, 'update'])->name('paquetes.update');
     });
 
     Route::middleware('role:admin')->group(function () {
@@ -39,19 +43,15 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/residentes/{residente}/editar', [ResidenteController::class, 'edit'])->name('residentes.edit');
         Route::patch('/residentes/{residente}', [ResidenteController::class, 'update'])->name('residentes.update');
         Route::patch('/residentes/{residente}/estado', [ResidenteController::class, 'toggle'])->name('residentes.toggle');
-        Route::get('/residentes/{residente}/cuenta/crear', [ResidenteController::class, 'createAccount'])->name('residentes.cuenta.create');
-        Route::post('/residentes/{residente}/cuenta', [ResidenteController::class, 'storeAccount'])->name('residentes.cuenta.store');
-
         Route::get('/guardas', [GuardaController::class, 'index'])->name('guardas');
-        Route::post('/guardas', [GuardaController::class, 'store'])->name('guardas.store');
         Route::get('/guardas/{user}/editar', [GuardaController::class, 'edit'])->name('guardas.edit');
         Route::patch('/guardas/{user}', [GuardaController::class, 'update'])->name('guardas.update');
         Route::patch('/guardas/{user}/estado', [GuardaController::class, 'toggle'])->name('guardas.toggle');
 
-        Route::get('/apartamentos', [ApartamentoController::class, 'index'])->name('apartamentos');
-        Route::post('/apartamentos', [ApartamentoController::class, 'store'])->name('apartamentos.store');
-        Route::patch('/apartamentos/{apartamento}', [ApartamentoController::class, 'update'])->name('apartamentos.update');
-        Route::patch('/apartamentos/{apartamento}/estado', [ApartamentoController::class, 'toggle'])->name('apartamentos.toggle');
+        Route::get('/casas', [ApartamentoController::class, 'index'])->name('casas');
+        Route::post('/casas', [ApartamentoController::class, 'store'])->name('casas.store');
+        Route::patch('/casas/{apartamento}', [ApartamentoController::class, 'update'])->name('casas.update');
+        Route::patch('/casas/{apartamento}/estado', [ApartamentoController::class, 'toggle'])->name('casas.toggle');
 
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes');
         Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');
@@ -62,8 +62,20 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/configuracion/password', [ConfiguracionController::class, 'actualizarPassword'])->name('configuracion.password');
     });
 
-    Route::middleware('role:admin,vigilante,residente')->group(function () {
+    Route::middleware('role:admin,vigilante,residente,superadmin')->group(function () {
         Route::get('/historial', [PaqueteController::class, 'historial'])->name('historial');
+    });
+
+    Route::middleware('role:admin,vigilante,superadmin')->group(function () {
+        Route::get('/paquetes/{paquete}/auditoria', [PaqueteController::class, 'auditoria'])->name('paquetes.auditoria');
+    });
+
+    Route::middleware('role:superadmin')->group(function () {
+        Route::get('/usuarios', [UserManagementController::class, 'index'])->name('usuarios');
+        Route::post('/usuarios', [UserManagementController::class, 'store'])->name('usuarios.store');
+        Route::post('/guardas', [GuardaController::class, 'store'])->name('guardas.store');
+        Route::get('/residentes/{residente}/cuenta/crear', [ResidenteController::class, 'createAccount'])->name('residentes.cuenta.create');
+        Route::post('/residentes/{residente}/cuenta', [ResidenteController::class, 'storeAccount'])->name('residentes.cuenta.store');
     });
 
     Route::middleware('role:residente')->group(function () {

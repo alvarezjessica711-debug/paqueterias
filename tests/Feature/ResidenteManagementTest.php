@@ -17,7 +17,7 @@ test('the residents page shows residents stored in the database', function () {
         ->get(route('residentes'))
         ->assertOk()
         ->assertSeeText('Laura Gomez')
-        ->assertSeeText('Sin apartamento asociado');
+        ->assertSeeText('Sin casa asociada');
 });
 
 test('an authenticated user can register a resident', function () {
@@ -29,7 +29,7 @@ test('an authenticated user can register a resident', function () {
             'nombre' => 'Daniela Rojas',
             'telefono' => '312 555 6677',
             'correo' => 'daniela@example.test',
-            'apartamentos' => $apartamentos->pluck('id')->all(),
+            'casas' => $apartamentos->pluck('id')->all(),
         ])
         ->assertRedirect(route('residentes'))
         ->assertSessionHas('success', 'Residente registrado correctamente.');
@@ -46,7 +46,7 @@ test('an authenticated user can register a resident', function () {
         ->toEqualCanonicalizing($apartamentos->pluck('id')->all());
 });
 
-test('an authenticated user must select at least one apartment when registering a resident', function () {
+test('an authenticated user must select at least one house when registering a resident', function () {
     $user = User::factory()->create(['rol' => 'admin']);
 
     $this->actingAs($user)
@@ -55,8 +55,8 @@ test('an authenticated user must select at least one apartment when registering 
             'nombre' => 'Andres Ramirez',
             'telefono' => '300 111 2233',
             'correo' => 'andres@example.test',
-            'apartamentos' => [],
+            'casas' => [],
         ])
         ->assertRedirect(route('residentes'))
-        ->assertSessionHasErrors('apartamentos');
+        ->assertSessionHasErrors('casas');
 });

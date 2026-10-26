@@ -16,7 +16,7 @@ test('the dashboard displays the resident assigned to a package', function () {
         'rol' => 'residente',
         'residente_id' => $residente->id,
     ]);
-    $apartamento = Apartamento::factory()->create(['torre' => 'Torre 2', 'numero' => '204']);
+    $apartamento = Apartamento::factory()->create(['codigo' => 'C10']);
     $residente->apartamentos()->attach($apartamento);
 
     Paquete::query()->create([
@@ -30,7 +30,8 @@ test('the dashboard displays the resident assigned to a package', function () {
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
+        ->assertSeeText('Hola, '.$user->name)
+        ->assertSeeText('Residente')
         ->assertSeeText('María Fernanda López')
-        ->assertSeeText('Torre 2')
-        ->assertSeeText('204');
+        ->assertSeeText('C10');
 });

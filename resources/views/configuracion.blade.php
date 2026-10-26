@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuración - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -90,7 +90,7 @@
                         <label for="password_nueva_confirmation">Confirmar Contraseña</label>
                         <input id="password_nueva_confirmation" name="password_nueva_confirmation" type="password" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="btn-limpiar-firma" style="margin: 0; flex: 0.5; min-width: 180px; height: 46px;">Cambiar Contraseña</button>
+                    <button type="submit" class="btn-secundario" style="margin: 0; flex: 0.5; min-width: 180px; height: 46px;">Cambiar Contraseña</button>
                 </form>
             </div>
         </main>

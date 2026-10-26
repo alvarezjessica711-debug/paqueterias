@@ -34,12 +34,12 @@ class ReporteController extends Controller
         return response()->streamDownload(function () use ($filtros): void {
             $archivo = fopen('php://output', 'w');
             fwrite($archivo, "\xEF\xBB\xBF");
-            fputcsv($archivo, ['Fecha recepción', 'Guía', 'Empresa', 'Residente', 'Torre', 'Apartamento', 'Estado', 'Fecha entrega', 'Recibido por', 'Guarda', 'Tiempo de retiro', 'Días en custodia'], ';');
+            fputcsv($archivo, ['Fecha recepción', 'Guía', 'Empresa', 'Destinatario', 'Casa', 'Estado', 'Fecha entrega', 'Recibido por', 'Guarda', 'Tiempo de retiro', 'Días en custodia'], ';');
 
             $this->consultaFiltrada($filtros)->latest('created_at')->get()->each(function (Paquete $paquete) use ($archivo): void {
                 fputcsv($archivo, [
                     $paquete->created_at?->format('d/m/Y H:i') ?? '-', $paquete->guia ?? '-', $paquete->empresa ?? '-',
-                    $paquete->residente?->nombre ?? '-', $paquete->apartamento?->torre ?? '-', $paquete->apartamento?->numero ?? '-',
+                    $paquete->destinatario ?: ($paquete->residente?->nombre ?? '-'), $paquete->casa?->codigo ?? '-',
                     $paquete->estado, $paquete->fecha_entrega?->format('d/m/Y H:i') ?? '-', $paquete->recibido_por ?? '-',
                     $paquete->entregadoPor?->name ?? '-', $this->tiempoRetiro($paquete), $this->diasCustodia($paquete),
                 ], ';');
@@ -54,8 +54,8 @@ class ReporteController extends Controller
     {
         $filtros = $request->validate([
             'fecha_desde' => ['nullable', 'date'], 'fecha_hasta' => ['nullable', 'date', 'after_or_equal:fecha_desde'],
-            'estado' => ['nullable', 'in:Todos,Pendiente,Entregado'], 'torre' => ['nullable', 'string', 'max:100'],
-            'apartamento' => ['nullable', 'string', 'max:100'], 'residente' => ['nullable', 'string', 'max:255'],
+            'estado' => ['nullable', 'in:Todos,Pendiente,Entregado'],
+            'casa' => ['nullable', 'string', 'max:100'], 'residente' => ['nullable', 'string', 'max:255'],
             'dias_custodia' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);
 
@@ -68,12 +68,11 @@ class ReporteController extends Controller
     /** @param array<string, mixed> $filtros */
     private function consultaFiltrada(array $filtros): Builder
     {
-        return Paquete::query()->with(['residente', 'apartamento', 'entregadoPor'])
+        return Paquete::query()->with(['residente', 'casa', 'entregadoPor'])
             ->when($filtros['fecha_desde'] ?? null, fn (Builder $query, string $fecha) => $query->whereDate('created_at', '>=', $fecha))
             ->when($filtros['fecha_hasta'] ?? null, fn (Builder $query, string $fecha) => $query->whereDate('created_at', '<=', $fecha))
             ->when(($filtros['estado'] ?? 'Todos') !== 'Todos', fn (Builder $query) => $query->where('estado', $filtros['estado']))
-            ->when($filtros['torre'] ?? null, fn (Builder $query, string $torre) => $query->whereHas('apartamento', fn (Builder $apartamento) => $apartamento->where('torre', 'like', "%{$torre}%")))
-            ->when($filtros['apartamento'] ?? null, fn (Builder $query, string $numero) => $query->whereHas('apartamento', fn (Builder $apartamento) => $apartamento->where('numero', 'like', "%{$numero}%")))
+            ->when($filtros['casa'] ?? null, fn (Builder $query, string $codigo) => $query->whereHas('casa', fn (Builder $casa) => $casa->where('codigo', 'like', "%{$codigo}%")))
             ->when($filtros['residente'] ?? null, fn (Builder $query, string $residente) => $query->whereHas('residente', fn (Builder $queryResidente) => $queryResidente->where('nombre', 'like', "%{$residente}%")));
     }
 

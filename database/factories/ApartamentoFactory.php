@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ApartamentoFactory extends Factory
 {
-    private static int $siguienteNumero = 1000;
+    private static int $siguienteNumero = 0;
 
     /**
      * Define the model's default state.
@@ -20,9 +20,8 @@ class ApartamentoFactory extends Factory
     public function definition(): array
     {
         return [
-            'torre' => fake()->randomElement(['Torre 1', 'Torre 2']),
-            // Avoid random collisions with the torre + numero database constraint.
-            'numero' => (string) self::$siguienteNumero++,
+            // Keep generated test houses outside the initial A1-F5 catalogue.
+            'codigo' => 'F'.(1000 + self::$siguienteNumero++),
         ];
     }
 }

@@ -18,10 +18,10 @@ class GuardaController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255', 'unique:users,email'], 'password' => ['required', 'string', 'min:8', 'confirmed']]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255', 'unique:users,email'], 'password' => ['required', 'string', 'min:12', 'confirmed']]);
         User::query()->create(['name' => $data['name'], 'email' => $data['email'], 'password' => Hash::make($data['password']), 'rol' => 'vigilante', 'residente_id' => null, 'activo' => true]);
 
-        return redirect()->route('guardas')->with('success', 'Vigilante registrado correctamente.');
+        return redirect()->route('usuarios')->with('success', 'Vigilante registrado correctamente.');
     }
 
     public function edit(User $user): View

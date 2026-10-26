@@ -10,17 +10,19 @@ abstract class ApiController extends Controller
 {
     protected function paqueteJson(Paquete $paquete): array
     {
-        $paquete->loadMissing(['residente', 'apartamento', 'entregadoPor', 'autorizacionActiva']);
+        $paquete->loadMissing(['residente', 'casa', 'entregadoPor', 'autorizacionActiva']);
 
         return [
             'id' => $paquete->id,
             'estado' => $paquete->estado,
             'empresa' => $paquete->empresa,
+            'destinatario' => $paquete->destinatario ?? $paquete->residente?->nombre,
+            'direccion' => $paquete->direccion ?? $paquete->casa?->codigo,
             'guia' => $paquete->guia,
             'detalles' => $paquete->detalles,
             'foto' => $paquete->foto,
             'residente' => $paquete->residente ? ['id' => $paquete->residente->id, 'nombre' => $paquete->residente->nombre] : null,
-            'apartamento' => $paquete->apartamento ? ['id' => $paquete->apartamento->id, 'torre' => $paquete->apartamento->torre, 'numero' => $paquete->apartamento->numero] : null,
+            'casa' => $paquete->casa ? ['id' => $paquete->casa->id, 'codigo' => $paquete->casa->codigo] : null,
             'entrega' => $paquete->estado === 'Entregado' ? [
                 'fecha' => $paquete->fecha_entrega?->toISOString(),
                 'recibido_por' => $paquete->recibido_por,

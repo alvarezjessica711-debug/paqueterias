@@ -23,7 +23,7 @@ function crearPaqueteHistorial(Residente $residente, Apartamento $apartamento, a
 test('an administrator can consult all packages and filter history by status, dates and search terms', function () {
     $admin = User::factory()->create(['rol' => 'admin']);
     $residente = Residente::factory()->create(['nombre' => 'Laura Gómez']);
-    $apartamento = Apartamento::factory()->create(['torre' => 'Torre 2', 'numero' => '204']);
+    $apartamento = Apartamento::factory()->create(['codigo' => 'C10']);
     $residente->apartamentos()->attach($apartamento);
 
     $pendiente = crearPaqueteHistorial($residente, $apartamento, ['guia' => 'GUIA-PENDIENTE-001']);
@@ -62,10 +62,15 @@ test('an administrator can consult all packages and filter history by status, da
         ->assertDontSeeText($pendiente->guia);
 
     $this->actingAs($admin)
-        ->get(route('historial', ['residente' => 'Laura', 'apartamento' => '204']))
+        ->get(route('historial', ['residente' => 'Laura', 'casa' => 'C10']))
         ->assertOk()
         ->assertSeeText('Laura Gómez')
-        ->assertSeeText('Torre 2');
+        ->assertSeeText('C10');
+
+    $this->actingAs($admin)
+        ->get(route('historial', ['casa' => 'C10']))
+        ->assertOk()
+        ->assertSeeText($pendiente->guia);
 });
 
 test('administrator history pagination keeps active filters', function () {

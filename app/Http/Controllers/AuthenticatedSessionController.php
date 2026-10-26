@@ -41,7 +41,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $rutaInicio = match ($user->rol) {
-            'admin', 'vigilante' => 'dashboard',
+            'admin', 'vigilante', 'superadmin' => 'dashboard',
             'residente' => 'dashboard-residente',
             default => 'login',
         };

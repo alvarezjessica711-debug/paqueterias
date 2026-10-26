@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar residente - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="layout-principal">
         @include('partials.navegacion')
         <main class="zona-trabajo">
-            <div class="encabezado-seccion"><h2>Editar residente</h2><p>Actualiza los datos y apartamentos del residente.</p></div>
+            <div class="encabezado-seccion"><h2>Editar residente</h2><p>Actualiza los datos y casas del residente.</p></div>
             @if ($errors->any())
                 <div class="alerta-error" role="alert">
                     <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -33,12 +33,12 @@
                         <label for="correo">Correo de contacto</label>
                         <input id="correo" name="correo" type="email" value="{{ old('correo', $residente->correo) }}">
                     </div>
-                    <div class="grupo-input" role="group" aria-labelledby="apartamentos-label">
-                        <span id="apartamentos-label">Apartamentos asociados</span>
-                        @foreach ($apartamentos as $apartamento)
-                            <label for="apartamento-{{ $apartamento->id }}">
-                                <input id="apartamento-{{ $apartamento->id }}" type="checkbox" name="apartamentos[]" value="{{ $apartamento->id }}" @checked(in_array($apartamento->id, old('apartamentos', $residente->apartamentos->modelKeys())))>
-                                {{ $apartamento->torre }} - {{ $apartamento->numero }}
+                    <div class="grupo-input" role="group" aria-labelledby="casas-label">
+                        <span id="casas-label">Casas asociadas</span>
+                        @foreach ($casas as $casa)
+                            <label for="casa-{{ $casa->id }}">
+                                <input id="casa-{{ $casa->id }}" type="checkbox" name="casas[]" value="{{ $casa->id }}" @checked(in_array($casa->id, old('casas', $residente->casas->modelKeys())))>
+                                {{ $casa->codigo }}
                             </label>
                         @endforeach
                     </div>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial de Entregas - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
         <main class="zona-trabajo">
             <div class="encabezado-seccion"><h2>Historial de Entregas</h2><p>Consulta el historial de paquetes registrados.</p></div>
-            <div class="contenedor-tabla">
+            <div class="contenedor-tabla historial-panel">
                 @if (session('success'))
                     <div class="alerta-exito">{{ session('success') }}</div>
                 @endif
@@ -32,12 +32,12 @@
                                 id="busqueda"
                                 name="busqueda"
                                 value="{{ $filtros['busqueda'] ?? '' }}"
-                                placeholder="Guía, residente, apartamento o empresa"
+                                placeholder="Guía, residente, casa o empresa"
                             >
                         </div>
                     </div>
                     <div class="filtro-grupo"><label for="residente">Residente</label><input type="text" id="residente" name="residente" class="filtro-fecha" value="{{ $filtros['residente'] ?? '' }}" placeholder="Nombre del residente"></div>
-                    <div class="filtro-grupo"><label for="apartamento">Apartamento</label><input type="text" id="apartamento" name="apartamento" class="filtro-fecha" value="{{ $filtros['apartamento'] ?? '' }}" placeholder="Torre o número"></div>
+                    <div class="filtro-grupo"><label for="casa">Código de casa</label><input type="text" id="casa" name="casa" class="filtro-fecha" value="{{ $filtros['casa'] ?? '' }}" placeholder="Ej. A1"></div>
                     <div class="filtro-grupo">
                         <label for="estado">Estado</label>
                         <select id="estado" name="estado" class="filtro-select">
@@ -58,14 +58,16 @@
                         </div>
                     </div>
                 </form>
-                <table class="tabla-datos">
-                    <thead><tr><th>Fecha y Hora</th><th>Apartamento</th><th>Residente</th><th>Mensajería</th><th>Guía / Tracking</th><th>Fotografía</th><th>Estado</th><th>Trazabilidad de entrega</th><th style="text-align: center;">Acciones</th></tr></thead>
+                <div class="historial-tabla-scroll" role="region" aria-label="Tabla de historial de paquetes" tabindex="0">
+                <table class="tabla-datos tabla-historial">
+                    <colgroup><col class="col-fecha"><col class="col-casa"><col class="col-residente"><col class="col-mensajeria"><col class="col-guia"><col class="col-fotografia"><col class="col-estado"><col class="col-trazabilidad"><col class="col-acciones"></colgroup>
+                    <thead><tr><th>Fecha y Hora</th><th>Casa</th><th>Destinatario</th><th>Mensajería</th><th>Guía / Tracking</th><th>Fotografía</th><th>Estado</th><th>Trazabilidad de entrega</th><th>Acciones</th></tr></thead>
                     <tbody>
                         @forelse ($paquetes as $paquete)
                             <tr>
                                 <td>{{ $paquete->created_at->format('d/m/Y H:i') }}</td>
-                                <td>{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }} - {{ $paquete->apartamento?->torre ?? 'Sin torre' }}</td>
-                                <td class="texto-largo">{{ $paquete->residente?->nombre ?? 'Sin residente asignado' }}</td>
+                                <td>{{ $paquete->casa?->codigo ?? 'Código de casa pendiente' }}</td>
+                                <td class="texto-largo">{{ $paquete->destinatario ?: ($paquete->residente?->nombre ?? 'Sin destinatario registrado') }}</td>
                                 <td class="texto-largo">{{ $paquete->empresa }}</td>
                                 <td>{{ $paquete->guia ?? 'Sin guía' }}</td>
                                 <td>
@@ -92,12 +94,6 @@
                                         @else
                                             <br><strong>Entrega:</strong> Residente
                                         @endif
-                                        @if ($paquete->firma)
-                                            <details>
-                                                <summary>Ver firma</summary>
-                                                <img src="{{ $paquete->firma }}" alt="Firma de recepción" style="max-width: 180px; margin-top: 8px; border: 1px solid #cbd5e1;">
-                                            </details>
-                                        @endif
                                     @elseif ($autorizacionReciente)
                                         <strong>Autorizado:</strong> {{ $autorizacionReciente->nombre_autorizado }}<br>
                                         <strong>Documento:</strong> {{ $autorizacionReciente->documento_autorizado }}<br>
@@ -107,12 +103,18 @@
                                         Pendiente de entrega
                                     @endif
                                 </td>
-                                <td style="text-align: center;">
-                                    @if ($paquete->estado === 'Pendiente')
+                                <td>
+                                    <div class="acciones-historial">
+                                    @if (auth()->user()->rol === 'vigilante' && $paquete->estado === 'Pendiente')
                                         <a href="{{ route('entrega', $paquete) }}" class="btn-accion-entregar">Marcar como Entregado</a>
-                                    @else
+                                        <a href="{{ route('paquetes.edit', $paquete) }}" class="btn-limpiar-filtros">Corregir</a>
+                                    @elseif ($paquete->estado === 'Entregado')
                                         <i class="fas fa-check-circle icono-entregado-check"></i>
                                     @endif
+                                    @if (in_array(auth()->user()->rol, ['admin', 'vigilante', 'superadmin'], true))
+                                        <a href="{{ route('paquetes.auditoria', $paquete) }}" class="enlace-auditoria">Ver auditoría</a>
+                                    @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -120,6 +122,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
                 @if ($paquetes->hasPages())
                     <div class="filtros-botones" style="padding: 20px; justify-content: center;">
                         @if ($paquetes->previousPageUrl())
@@ -130,6 +133,22 @@
                             <a href="{{ $paquetes->nextPageUrl() }}" class="btn-confirmar-verde btn-buscar" style="width: auto;">Siguiente</a>
                         @endif
                     </div>
+                @endif
+                @if (in_array(auth()->user()->rol, ['admin', 'superadmin'], true))
+                    <section class="historial-auditoria">
+                        <h3>Auditoría de modificaciones y entregas</h3>
+                        <div class="historial-tabla-scroll" role="region" aria-label="Tabla de auditoría de modificaciones y entregas" tabindex="0"><table class="tabla-datos tabla-auditoria">
+                            <thead><tr><th>Fecha y hora</th><th>Paquete</th><th>Usuario</th><th>Acción</th><th>Campo</th><th>Valor anterior</th><th>Valor nuevo</th></tr></thead>
+                            <tbody>
+                                @forelse ($auditorias as $evento)
+                                    <tr><td>{{ $evento->created_at?->format('d/m/Y H:i:s') }}</td><td>{{ $evento->paquete_id }}</td><td>{{ $evento->usuario?->name ?? 'Usuario no disponible' }}</td><td>{{ $evento->accion }}</td><td>{{ $evento->campo ?? '—' }}</td><td>{{ $evento->valor_anterior ?? '—' }}</td><td>{{ $evento->valor_nuevo ?? '—' }}</td></tr>
+                                @empty
+                                    <tr><td colspan="7">No hay eventos de auditoría registrados.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table></div>
+                        {{ $auditorias->links() }}
+                    </section>
                 @endif
             </div>
         </main>

@@ -78,6 +78,7 @@ test('login sends each role to its panel despite a previously requested protecte
     $this->get($paginaPrevia)->assertForbidden();
 })->with([
     'admin from root' => ['admin', 'dashboard', '/'],
+    'superadmin from root' => ['superadmin', 'dashboard', '/'],
     'vigilante from administration' => ['vigilante', 'dashboard', '/residentes'],
     'residente from root' => ['residente', 'dashboard-residente', '/'],
 ]);
@@ -122,23 +123,23 @@ test('administrators can access administrative routes', function () {
 });
 
 test('each role sees only its permitted navigation options', function () {
-    $vigilante = User::factory()->create(['rol' => 'vigilante']);
+    $vigilante = User::factory()->create(['rol' => 'vigilante', 'name' => 'Vigilante Prueba']);
 
     $this->actingAs($vigilante)
         ->get(route('dashboard'))
         ->assertSeeText('Registrar Paquete')
-        ->assertSeeText('¡Hola, Vigilante!')
+        ->assertSeeText('¡Hola, Vigilante Prueba!')
         ->assertSeeText('Consultar Entregas')
         ->assertDontSeeText('Residentes')
         ->assertDontSeeText('Configuración');
 
-    $administrator = User::factory()->create(['rol' => 'admin']);
+    $administrator = User::factory()->create(['rol' => 'admin', 'name' => 'Administradora Prueba']);
 
     $this->actingAs($administrator)
         ->get(route('dashboard'))
         ->assertSeeText('Residentes')
-        ->assertSeeText('¡Hola, Administrador!')
-        ->assertDontSeeText('¡Hola, Vigilante!')
+        ->assertSeeText('¡Hola, Administradora Prueba!')
+        ->assertDontSeeText('¡Hola, Vigilante Prueba!')
         ->assertDontSee('href="'.route('registro-paquetes').'"', false)
         ->assertDontSee(route('consultar'), false)
         ->assertSeeText('Configuración')

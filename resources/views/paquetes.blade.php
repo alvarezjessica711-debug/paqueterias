@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Paquetes - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -96,8 +96,8 @@
             <thead>
                 <tr>
                     <th>Fecha</th>
-                    <th>Torre</th>
-                    <th>Apartamento</th>
+                    <th>Casa</th>
+                    <th>Destinatario</th>
                     <th>Mensajería</th>
                     <th>Detalles</th>
                     <th>Estado</th>
@@ -107,8 +107,8 @@
                 @forelse ($paquetes as $paquete)
                     <tr>
                         <td>{{ $paquete->created_at->format('d/m/Y') }}</td>
-                        <td>{{ $paquete->apartamento?->torre ?? 'Sin torre' }}</td>
-                        <td>{{ $paquete->apartamento?->numero ?? 'Sin apartamento' }}</td>
+                        <td>{{ $paquete->casa?->codigo ?? 'Código de casa pendiente' }}</td>
+                        <td>{{ $paquete->destinatario ?: ($paquete->residente?->nombre ?? 'Sin destinatario registrado') }}</td>
                         <td>{{ $paquete->empresa }}</td>
                         <td>{{ $paquete->detalles ?? 'Sin detalles' }}</td>
                         <td class="estado-ok">{{ $paquete->estado }}</td>

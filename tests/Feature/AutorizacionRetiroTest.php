@@ -9,22 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function firmaParaAutorizacion(): string
-{
-    $imagen = imagecreatetruecolor(120, 60);
-    imagealphablending($imagen, false);
-    imagesavealpha($imagen, true);
-    imagefill($imagen, 0, 0, imagecolorallocatealpha($imagen, 255, 255, 255, 127));
-    imagealphablending($imagen, true);
-    imageline($imagen, 10, 45, 100, 15, imagecolorallocate($imagen, 15, 23, 42));
-    ob_start();
-    imagepng($imagen);
-    $contenido = (string) ob_get_clean();
-    imagedestroy($imagen);
-
-    return 'data:image/png;base64,'.base64_encode($contenido);
-}
-
 function paquetePendienteParaAutorizacion(): array
 {
     $residente = Residente::factory()->create();
@@ -141,13 +125,15 @@ test('a guard can verify and deliver a package to its active authorized third pa
         ->get(route('entrega', $paquete))
         ->assertOk()
         ->assertSeeText('Pedro Pérez')
-        ->assertSee('value="autorizado"', false);
+        ->assertSeeText('Código único de entrega');
 
     $this->actingAs($vigilante)
-        ->post(route('entrega.confirmar', $paquete), [
-            'tipo_receptor' => 'autorizado',
-            'firma' => firmaParaAutorizacion(),
-        ])
+        ->from(route('entrega', $paquete))
+        ->post(route('entrega.validar', $paquete), ['codigo_entrega' => $paquete->codigo_entrega])
+        ->assertSessionHas('success');
+    $this->actingAs($vigilante)->get(route('entrega', $paquete))->assertOk()->assertSee('value="autorizado"', false);
+    $this->actingAs($vigilante)
+        ->post(route('entrega.confirmar', $paquete), ['tipo_receptor' => 'autorizado'])
         ->assertRedirect(route('historial'));
 
     $paquete->refresh();
@@ -177,10 +163,10 @@ test('a personal delivery cancels an active authorization and guards cannot mana
         ->assertForbidden();
 
     $this->actingAs($vigilante)
-        ->post(route('entrega.confirmar', $paquete), [
-            'tipo_receptor' => 'residente',
-            'firma' => firmaParaAutorizacion(),
-        ]);
+        ->post(route('entrega.validar', $paquete), ['codigo_entrega' => $paquete->codigo_entrega])
+        ->assertSessionHas('success');
+    $this->actingAs($vigilante)
+        ->post(route('entrega.confirmar', $paquete), ['tipo_receptor' => 'residente']);
 
     expect($paquete->fresh()->recibido_por)->toBe($residente->nombre)
         ->and($autorizacion->fresh()->estado)->toBe(AutorizacionRetiro::CANCELADA);
@@ -197,11 +183,11 @@ test('a cancelled authorization cannot be selected for delivery', function () {
     $vigilante = User::factory()->create(['rol' => 'vigilante']);
 
     $this->actingAs($vigilante)
+        ->post(route('entrega.validar', $paquete), ['codigo_entrega' => $paquete->codigo_entrega])
+        ->assertSessionHas('success');
+    $this->actingAs($vigilante)
         ->from(route('entrega', $paquete))
-        ->post(route('entrega.confirmar', $paquete), [
-            'tipo_receptor' => 'autorizado',
-            'firma' => firmaParaAutorizacion(),
-        ])
+        ->post(route('entrega.confirmar', $paquete), ['tipo_receptor' => 'autorizado'])
         ->assertRedirect(route('entrega', $paquete))
         ->assertSessionHasErrors('tipo_receptor');
 

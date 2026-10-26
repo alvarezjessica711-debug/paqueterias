@@ -14,20 +14,20 @@ class ResidenteSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            ['nombre' => 'María Fernanda López', 'apartamentos' => [['torre' => 'Torre 2', 'numero' => '204']], 'telefono' => '3101234567'],
-            ['nombre' => 'Juan Carlos Pérez', 'apartamentos' => [['torre' => 'Torre 1', 'numero' => '301']], 'telefono' => '3209876543'],
-            ['nombre' => 'Laura Gómez', 'apartamentos' => [['torre' => 'Torre 2', 'numero' => '105'], ['torre' => 'Torre 1', 'numero' => '402']], 'telefono' => '3004567890'],
-            ['nombre' => 'Andrés Ramírez', 'apartamentos' => [['torre' => 'Torre 1', 'numero' => '402']], 'telefono' => '3112223344'],
-            ['nombre' => 'Camila Torres', 'apartamentos' => [['torre' => 'Torre 2', 'numero' => '203']], 'telefono' => '3156549870'],
+            ['nombre' => 'María Fernanda López', 'casas' => ['C1'], 'telefono' => '3101234567'],
+            ['nombre' => 'Juan Carlos Pérez', 'casas' => ['A1'], 'telefono' => '3209876543'],
+            ['nombre' => 'Laura Gómez', 'casas' => ['B1', 'A2'], 'telefono' => '3004567890'],
+            ['nombre' => 'Andrés Ramírez', 'casas' => ['A2'], 'telefono' => '3112223344'],
+            ['nombre' => 'Camila Torres', 'casas' => ['B2'], 'telefono' => '3156549870'],
         ] as $residente) {
             $persona = Residente::query()->updateOrCreate(
                 ['nombre' => $residente['nombre']],
                 ['telefono' => $residente['telefono']],
             );
 
-            foreach ($residente['apartamentos'] as $datosApartamento) {
-                $apartamento = Apartamento::query()->firstOrCreate($datosApartamento);
-                $persona->apartamentos()->syncWithoutDetaching([$apartamento->id]);
+            foreach ($residente['casas'] as $codigo) {
+                $casa = Apartamento::query()->firstOrCreate(['codigo' => $codigo]);
+                $persona->casas()->syncWithoutDetaching([$casa->id]);
             }
         }
     }

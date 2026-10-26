@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mensajería - Valle de San Remo</title>
-    <link rel="stylesheet" href="{{ asset('estilos.css') }}">
+    <link rel="stylesheet" href="/estilos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="layout-principal">
         <aside class="sidebar-navegacion">
             <div class="image-container">
-                <a href="{{ route('dashboard') }}" title="Volver al panel principal"><img src="{{ asset('Imagenes/logo.png') }}" alt="Logo Valle de San Remo" class="img-logo"></a>
+                <a href="{{ route('dashboard') }}" title="Volver al panel principal"><img src="/Imagenes/logo.png" alt="Logo Valle de San Remo" class="img-logo"></a>
             </div>
             <nav>
                 <ul>

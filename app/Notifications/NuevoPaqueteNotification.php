@@ -31,7 +31,7 @@ class NuevoPaqueteNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $apartamento = $this->paquete->apartamento;
+        $casa = $this->paquete->casa;
         $nombreResidente = $this->paquete->residente?->nombre ?? $notifiable->name;
 
         return (new MailMessage)
@@ -40,7 +40,8 @@ class NuevoPaqueteNotification extends Notification
             ->line('Has recibido un nuevo paquete en la portería del Conjunto Valle de San Remo.')
             ->line("Guía: {$this->paquete->guia}")
             ->line("Empresa: {$this->paquete->empresa}")
-            ->line('Apartamento: '.($apartamento ? "{$apartamento->torre} - Apto. {$apartamento->numero}" : 'Sin apartamento asignado'))
+            ->line("Destinatario: {$this->paquete->destinatario}")
+            ->line('Casa: '.($casa?->codigo ?? 'Sin casa asignada'))
             ->line("Estado: {$this->paquete->estado}")
             ->line('Fecha de recepción: '.$this->paquete->created_at->format('d/m/Y H:i'))
             ->when(

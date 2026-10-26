@@ -6,6 +6,7 @@ use Database\Factories\ApartamentoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Apartamento extends Model
 {
@@ -15,13 +16,17 @@ class Apartamento extends Model
     protected $attributes = ['activo' => true];
 
     protected $fillable = [
-        'torre',
-        'numero',
+        'codigo',
         'activo',
     ];
 
     public function residentes(): BelongsToMany
     {
-        return $this->belongsToMany(Residente::class);
+        return $this->belongsToMany(Residente::class, 'apartamento_residente', 'apartamento_id', 'residente_id');
+    }
+
+    public function paquetes(): HasMany
+    {
+        return $this->hasMany(Paquete::class, 'apartamento_id');
     }
 }

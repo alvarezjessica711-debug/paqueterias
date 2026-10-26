@@ -2,7 +2,7 @@
 
 ## RNF-01: Usabilidad
 
-El flujo del vigilante se mantiene en una sola pantalla y dos bloques conceptuales: seleccionar residente y apartamento, y registrar la información del paquete. El botón final indica claramente "Registrar y notificar al residente".
+El flujo del vigilante se mantiene en una sola pantalla y dos bloques conceptuales: seleccionar residente y número de casa, y registrar la información del paquete. El botón final indica claramente "Registrar y notificar al residente".
 
 Las vistas operativas incluyen viewport, etiquetas asociadas a controles, campos requeridos, mensajes de validación y botones con texto. La hoja de estilos adapta la navegación, formularios y acciones a pantallas menores a 768 px; las tablas se desplazan horizontalmente dentro de su contenedor cuando es necesario para no recortar datos.
 

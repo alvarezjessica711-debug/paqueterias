@@ -35,7 +35,12 @@ class Residente extends Model
 
     public function apartamentos(): BelongsToMany
     {
-        return $this->belongsToMany(Apartamento::class);
+        return $this->casas();
+    }
+
+    public function casas(): BelongsToMany
+    {
+        return $this->belongsToMany(Apartamento::class, 'apartamento_residente', 'residente_id', 'apartamento_id');
     }
 
     public function user(): HasOne

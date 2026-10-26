@@ -18,7 +18,7 @@ class ResidentePaqueteController extends Controller
 
         $inicioMes = now()->startOfMonth();
         $paquetesMes = Paquete::query()
-            ->with('apartamento')
+            ->with(['casa', 'residente'])
             ->where('residente_id', $residenteId)
             ->where('created_at', '>=', $inicioMes)
             ->latest()
@@ -54,7 +54,7 @@ class ResidentePaqueteController extends Controller
     private function paquetesDelResidente(int $residenteId, array $filtros)
     {
         return Paquete::query()
-            ->with(['apartamento', 'autorizacionActiva'])
+            ->with(['casa', 'residente', 'autorizacionActiva'])
             ->where('residente_id', $residenteId)
             ->when(
                 ($filtros['estado'] ?? null) && $filtros['estado'] !== 'Todos',
